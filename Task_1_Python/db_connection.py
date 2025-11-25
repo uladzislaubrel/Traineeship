@@ -16,4 +16,15 @@ def create_connection(db_name, db_user, db_password, db_host, db_port):
         print(f"Произошла ошибка '{e}' при подключении к БД")
     return connection
 
+DB_PARAMS = {
+    "db_name": "postgres",
+    "db_user": "postgres",
+    "db_password": "123123POIU123",
+    "db_host": "localhost",
+    "db_port": "5432"
+}
+
+if __name__ == '__main__':
+    conn = create_connection(**DB_PARAMS)
+
 

@@ -1,10 +1,10 @@
-# Импортируем функцию подключения из нашего модуля database.connection
 from db_connection import create_connection
-
-# Импортируем функции загрузки данных из нашего модуля dataloader
 from data_loader import load_json_data, insert_rooms, insert_students
+from indexes import apply_indexes
+from queries import get_count_students_by_room, get_less_populated_rooms, get_rooms_with_large_diff, get_rooms_with_diff_sex
 
-# !!! ЗАМЕНИТЕ ЭТИ ПАРАМЕТРЫ НА ВАШИ !!!
+from export import export_results
+
 DB_PARAMS = {
     "db_name": "postgres",
     "db_user": "postgres",
@@ -12,32 +12,42 @@ DB_PARAMS = {
     "db_host": "localhost",
     "db_port": "5432"
 }
-ROOMS_FILE = input('Введите путь для комнат: ')  #'C:\Tasks\Traineeship\Task_1_Python\rooms.json'
-STUDENTS_FILE = input('Введите путь для студентов: ') #'C:\Tasks\Traineeship\Task_1_Python\students.json'
-
+ROOMS_FILE = input('Введите путь для комнат: ')  #'C:\Tasks\Traineeship\Task_1_Python\rooms.json'      rooms.json
+STUDENTS_FILE = input('Введите путь для студентов: ') #'C:\Tasks\Traineeshirooms.jsonp\Task_1_Python\students.json'     students.json
+FILE_FORMAT = input('Введите 1 для выгрузки итогов в формате JSON; 2 для выгрузки в формате XML: ')
 
 if __name__ == '__main__':
-    # 1. Подключение к БД
     conn = create_connection(**DB_PARAMS)
 
     if conn:
         try:
-            # 2. Чтение данных из JSON
             rooms_data = load_json_data(ROOMS_FILE)
             students_data = load_json_data(STUDENTS_FILE)
 
             if rooms_data is not None and students_data is not None:
-                # 3. Загрузка данных в таблицы
-                print(f"\n--- Запуск загрузки данных ---")
+                print(f"\nЗапуск загрузки данных")
                 insert_rooms(conn, rooms_data)
                 insert_students(conn, students_data)
-                print(f"\n--- Процесс загрузки данных завершен. ---")
+                print(f"\nПроцесс загрузки данных завершен")
+                print(f"\nЗапуск оптимизации БД")
+                apply_indexes(conn)
+                print(f"\nПроцесс завершен")
+                print(f"\nВыполнение SELECT запросов")
+                analysis_data = {}
+                analysis_data['1_students_count_by_room'] = get_count_students_by_room(conn)
+                analysis_data['2_less_populated_rooms'] = get_less_populated_rooms(conn)
+                analysis_data['3_largest_age_diff_rooms'] = get_rooms_with_large_diff(conn)
+                analysis_data['4_different_sex_rooms'] = get_rooms_with_diff_sex(conn)
+                print(f"--- Все запросы выполнены.")
+                if analysis_data:
+                    export_results(analysis_data, FILE_FORMAT)
+                else:
+                    print("Не удалось получить данные для экспорта.")
 
         except Exception as e:
             print(f"Произошла непредвиденная ошибка во время выполнения: {e}")
         finally:
-            # 4. Закрытие соединения
             conn.close()
             print("Соединение с БД закрыто.")
     else:
-        print("Не удалось подключиться к базе данных. Загрузка данных отменена.")
+        print("Не удалось подключиться к базе данных.")

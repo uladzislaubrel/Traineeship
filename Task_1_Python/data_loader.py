@@ -3,7 +3,6 @@ import os
 import psycopg2
 
 def load_json_data(filepath):
-    """Читает данные из JSON файла."""
     if not os.path.exists(filepath):
         print(f"Ошибка: файл не найден по пути {filepath}")
         return None
@@ -15,7 +14,6 @@ def load_json_data(filepath):
         return None
 
 def insert_rooms(connection, rooms_data):
-    """Загружает данные комнат в таблицу rooms."""
     cursor = connection.cursor()
     insert_query = """
     INSERT INTO rooms (id, name) VALUES (%s, %s)
@@ -32,7 +30,6 @@ def insert_rooms(connection, rooms_data):
     cursor.close()
 
 def insert_students(connection, students_data):
-    """Загружает данные студентов в таблицу students."""
     cursor = connection.cursor()
     insert_query = """
     INSERT INTO students (id, name, room, birthday, sex) 
