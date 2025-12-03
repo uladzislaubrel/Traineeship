@@ -1,56 +1,73 @@
 import json
 import xml.etree.ElementTree as ET
-
-def export_to_xml(data, root_tag="analyze_report", row_tag="query_item"):
-
-    root = ET.Element(root_tag)
-
-    for section_name, records in data.items():
-        section_element = ET.SubElement(root, section_name)
-        section_element.text = '\n\t'
-        section_element.tail = '\n'
+import os
 
 
-        for record in records:
-            item_element = ET.SubElement(section_element, row_tag)
-            item_element.tail = '\n\t'
+class Exporter:
+    """
+    Class responsible for exporting query results into
+    specified formats( JSON or XML)
+    """
 
-            for key, value in record.items():
-                ET.SubElement(item_element, key).text = str(value)
+    def __init__(self, output_dir: str = "."):
+        self.output_dir = output_dir
 
+    def _export_to_xml_string(
+        self, data: dict, root_tag: str = "queries_report", row_tag="query_item"
+    ) -> str:
+        root = ET.Element(root_tag)
 
-    rough_string = ET.tostring(root, encoding='utf-8')
+        for section_name, records in data.items():
+            section_element = ET.SubElement(root, section_name)
+            section_element.text = "\n\t"
+            section_element.tail = "\n"
 
-    return rough_string.decode('utf-8')
+            if not isinstance(records, list):
+                ET.SubElement(section_element, "result").text = str(records)
+                continue
 
-def export_results(data, format_code):  #, query):
+            for record in records:
+                item_element = ET.SubElement(section_element, row_tag)
+                item_element.tail = "\n\t"
 
-    if format_code == '1':
-        output_format = 'json'
+                for key, value in record.items():
+                    ET.SubElement(item_element, key).text = str(value)
 
-    elif format_code == '2':
-        output_format = 'xml'
+        rough_string = ET.tostring(root, "utf-8")
+        return rough_string.decode("utf-8")
 
-    else:
-        print("Неизвестный код формата. Экспорт будет в формате JSON.")
-        output_format = 'json'
+    def export_results(self, data: dict, format_code: str = "json"):
+        if format_code == "1":
+            output_format = "json"
+        elif format_code == "2":
+            output_format = "xml"
+        else:
+            print("Unknown format code. Export will be in JSON")
+            output_format = "json"
 
-    output_path = f"query_results.{output_format}"
+        output_filename = f"query_results.{output_format}"
+        output_path = os.path.join(self.output_dir, output_filename)
 
-    if output_format == 'json':
+        print(f"Exporting results to {output_path}{output_filename}")
+
+        if output_format == "json":
+            self._save_to_json(data, output_path)
+        elif output_format == "xml":
+            self._save_to_xml(data, output_path)
+
+    def _save_to_json(self, data: dict, output_path: str):
         try:
-            with open(output_path, 'w', encoding='utf-8') as f:
+            with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=4, default=str)
-            print(f"Результаты успешно сохранены в файл: {output_path}")
+            print(f"Results successfully saved to {output_path}")
         except Exception as e:
-            print(f"Ошибка при сохранении в JSON: {e}")
+            print(f"Error during json saving: {e}")
 
-    elif output_format == 'xml':
+    def _save_to_xml(self, data: dict, output_path: str):
         try:
-            xml_string = export_to_xml(data)
-            with open(output_path, 'w', encoding='utf-8') as f:
+            xml_string = self._export_to_xml_string(data)
+            with open(output_path, "w", encoding="utf-8") as f:
                 f.write(xml_string)
-            print(f"Результаты успешно сохранены в файл: {output_path}")
-
+                print(f"Results successfully saved to {output_path}")
         except Exception as e:
-            print(f"Ошибка при сохранении в XML: {e}")
+            print(f"Error during xml saving: {e}")

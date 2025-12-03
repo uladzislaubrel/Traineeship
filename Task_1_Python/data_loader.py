@@ -1,53 +1,68 @@
 import json
 import os
-import psycopg2
+from psycopg2 import extras, OperationalError, DatabaseError
 
-def load_json_data(filepath):
-    if not os.path.exists(filepath):
-        print(f"Ошибка: файл не найден по пути {filepath}")
-        return None
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except json.JSONDecodeError as e:
-        print(f"Ошибка декодирования JSON в файле {filepath}: {e}")
-        return None
+from db_connection import DBConnection
 
-def insert_rooms(connection, rooms_data):
-    cursor = connection.cursor()
-    insert_query = """
-    INSERT INTO rooms (id, name) VALUES (%s, %s)
-    ON CONFLICT (id) DO NOTHING;
+
+class DataLoader:
     """
-    for room in rooms_data:
-        try:
-            cursor.execute(insert_query, (room['id'], room['name']))
-        except psycopg2.Error as e:
-            print(f"Ошибка при вставке комнаты {room['name']}: {e}")
-            connection.rollback()
-    connection.commit()
-    print(f"Загружено {len(rooms_data)} комнат.")
-    cursor.close()
-
-def insert_students(connection, students_data):
-    cursor = connection.cursor()
-    insert_query = """
-    INSERT INTO students (id, name, room, birthday, sex) 
-    VALUES (%s, %s, %s, %s, %s)
-    ON CONFLICT (id) DO NOTHING;
+    Class for import data from json files and insert
+    it into PostgreSQL tables
     """
-    for student in students_data:
+
+    def __init__(self, db_connection_manager: DBConnection):
+        self.db_connection_manager = db_connection_manager
+
+    def import_json_file(self, json_file_path) -> list:
+        if not os.path.exists(json_file_path):
+            print(f"File not found: {json_file_path}")
+            return []
+
         try:
-            cursor.execute(insert_query, (
-                student['id'],
-                student['name'],
-                student['room'],
-                student['birthday'],
-                student['sex']
-            ))
-        except psycopg2.Error as e:
-            print(f"Ошибка при вставке студента {student['name']}: {e}")
+            with open(json_file_path, "r", encoding="utf-8") as json_file:
+                data = json.load(json_file)
+            print(f"File loaded: {json_file_path}")
+            return data
+        except (json.JSONDecodeError, Exception) as e:
+            print(f"Error reading or decoding json file: {e}")
+            return []
+
+    def insert_data(self, connection, table_name: str, data: list, columns: list):
+        """Inserts a list o dicts into table using
+        psycopg2.extras.execute_values"""
+        if not data or not columns:
+            print(f"No data or columns for table {table_name}. Skip insertion")
+            return
+
+        columns_str = ",".join(columns)
+
+        insert_query = f"""
+            INSERT INTO {table_name} ({columns_str}) 
+            VALUES %s
+            ON CONFLICT (id) DO NOTHING
+        """
+
+        values = [tuple(row.get(col) for col in columns) for row in data]
+
+        try:
+            with connection.cursor() as cursor:
+                extras.execute_values(cursor, insert_query, values)
+            connection.commit()
+            print(f"Successfully inserted into '{table_name}'")
+        except (OperationalError, Exception, DatabaseError) as e:
             connection.rollback()
-    connection.commit()
-    print(f"Загружено {len(students_data)} студентов.")
-    cursor.close()
+            print(f"Error while inserting  '{table_name}': {e}")
+
+    def load_and_insert(self, filename: str, table_name: str, columns: list):
+        print(f"Starting process fot {filename}")
+        connection = self.db_connection_manager.conn
+
+        if connection is None:
+            print(f"Dataloading aborted because of inactive connection")
+            return
+
+        data_to_insert = self.import_json_file(filename)
+
+        if data_to_insert:
+            self.insert_data(connection, table_name, data_to_insert, columns)

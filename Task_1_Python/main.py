@@ -1,53 +1,76 @@
-from db_connection import create_connection
-from data_loader import load_json_data, insert_rooms, insert_students
-from indexes import apply_indexes
-from queries import get_count_students_by_room, get_less_populated_rooms, get_rooms_with_large_diff, get_rooms_with_diff_sex
+import os
+from dotenv import load_dotenv
 
-from export import export_results
+from db_connection import DBConnection
+from data_loader import DataLoader
+from indexes import IndexManager
+from queries import QueryExecutor
+from export import Exporter
 
-DB_PARAMS = {
-    "db_name": "postgres",
-    "db_user": "postgres",
-    "db_password": "123123POIU123",
-    "db_host": "localhost",
-    "db_port": "5432"
-}
-ROOMS_FILE = input('Введите путь для комнат: ')  #'C:\Tasks\Traineeship\Task_1_Python\rooms.json'      rooms.json
-STUDENTS_FILE = input('Введите путь для студентов: ') #'C:\Tasks\Traineeshirooms.jsonp\Task_1_Python\students.json'     students.json
-FILE_FORMAT = input('Введите 1 для выгрузки итогов в формате JSON; 2 для выгрузки в формате XML: ')
 
-if __name__ == '__main__':
-    conn = create_connection(**DB_PARAMS)
+def main():
+    print("Starting application")
 
+    ROOMS_FILE = input(
+        "Введите путь для комнат: "
+    )  # 'C:\Tasks\Traineeship\Task_1_Python\rooms.json'    rooms.json
+    STUDENTS_FILE = input(
+        "Введите путь для студентов: "
+    )  # 'C:\Tasks\Traineeshirooms.jsonp\Task_1_Python\students.json'   students.json
+    FILE_FORMAT = input(
+        "Введите 1 для выгрузки итогов в формате JSON; 2 для выгрузки в формате XML: "
+    )
+
+    load_dotenv()
+    db_name = os.getenv("DB_NAME")
+    db_user = os.getenv("DB_USER")
+    db_password = os.getenv("DB_PASSWORD")
+    db_host = os.getenv("DB_HOST")
+    db_port = os.getenv("DB_PORT")
+    conn = DBConnection(db_name, db_user, db_password, db_host, db_port)
+    print()
     if conn:
+        print("Connection is active")
         try:
-            rooms_data = load_json_data(ROOMS_FILE)
-            students_data = load_json_data(STUDENTS_FILE)
+            rooms_loader = DataLoader(conn)
+            students_loader = DataLoader(conn)
+            print(f"\nStart data loading ")
+            rooms_loader.load_and_insert(ROOMS_FILE, "rooms", ["id", "name"])
+            students_loader.load_and_insert(
+                STUDENTS_FILE, "students", ["id", "name", "room", "birthday", "sex"]
+            )
+            print(f"\nData loading was successful!!!")
 
-            if rooms_data is not None and students_data is not None:
-                print(f"\nЗапуск загрузки данных")
-                insert_rooms(conn, rooms_data)
-                insert_students(conn, students_data)
-                print(f"\nПроцесс загрузки данных завершен")
-                print(f"\nЗапуск оптимизации БД")
-                apply_indexes(conn)
-                print(f"\nПроцесс завершен")
-                print(f"\nВыполнение SELECT запросов")
-                analysis_data = {}
-                analysis_data['1_students_count_by_room'] = get_count_students_by_room(conn)
-                analysis_data['2_less_populated_rooms'] = get_less_populated_rooms(conn)
-                analysis_data['3_largest_age_diff_rooms'] = get_rooms_with_large_diff(conn)
-                analysis_data['4_different_sex_rooms'] = get_rooms_with_diff_sex(conn)
-                print(f"--- Все запросы выполнены.")
-                if analysis_data:
-                    export_results(analysis_data, FILE_FORMAT)
-                else:
-                    print("Не удалось получить данные для экспорта.")
+            print(f"\nStart indexing ")
+            index_manager = IndexManager(conn)
+            index_manager.apply_indexes()
+            print(f"\nIndexing was successful!!!")
+
+            data = {}
+            print(f"\nStart querying ")
+            query_executor = QueryExecutor(conn)
+            data["1"] = query_executor.get_count_students_by_room()
+            data["2"] = query_executor.get_less_age_rooms()
+            data["3"] = query_executor.get_rooms_with_large_diff()
+            data["4"] = query_executor.get_rooms_with_diff_sex()
+            print(f"\nQueries was successful!!!")
+
+            if data:
+                print(f"\nStart exporting ")
+                exporter = Exporter()
+                exporter.export_results(data, FILE_FORMAT)
+                print(f"\nExport was successful!!!")
+            else:
+                print(f"There are no data to export")
 
         except Exception as e:
-            print(f"Произошла непредвиденная ошибка во время выполнения: {e}")
+            print("ERROR!!!!!")
+            print(f"Error {e} \n")
+
         finally:
             conn.close()
-            print("Соединение с БД закрыто.")
-    else:
-        print("Не удалось подключиться к базе данных.")
+            print("Connection closed")
+
+
+if __name__ == "__main__":
+    main()
