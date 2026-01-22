@@ -1,2 +1,10 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Делаем LF стандартным окончанием строк в репозитории
+* text=auto eol=lf
+
+# Явно указываем, что файлы Airflow и Docker должны быть с LF
+*.py text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.csv text eol=lf
+*.sh text eol=lf
+*.sql text eol=lf
