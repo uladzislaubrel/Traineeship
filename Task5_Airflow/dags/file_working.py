@@ -10,9 +10,9 @@ from datetime import datetime
 import os
 
 
-FILE_PATH = '/opt/airflow/dags/tiktok_google_play_reviews.csv'
-TEMP_PATH = '/opt/airflow/dags/temp_data.csv'
-FINAL_PATH = '/opt/airflow/dags/processed_data.csv'
+FILE_PATH = '/opt/airflow/data/tiktok_google_play_reviews.csv'
+TEMP_PATH = '/opt/airflow/data/temp_data.csv'
+FINAL_PATH = '/opt/airflow/data/processed_data.csv'
 MY_DATASET = Dataset(FINAL_PATH)
 
 @dag(dag_id='file_working',
