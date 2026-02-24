@@ -1,0 +1,12 @@
+ROW_ID,PASSENGER_ID,FIRST_NAME,LAST_NAME,GENDER,AGE,NATIONALITY,AIRPORT_NAME,AIRPORT_COUNTRY_CODE,COUNTRY_NAME,AIRPORT_CONTINENT,CONTINENTS,DEPARTURE_DATE,ARRIVAL_AIRPORT,PILOT_NAME,FLIGHT_STATUS,TICKET_TYPE,PASSENGER_STATUS,INGESTION_TIME
+3,BRS38V,Dominica,Brown,Female,71,China,Ottawa / Gatineau Airport,CA,Canada,NAM,North America,9/16/2022,YND,Dominica Pyle,Delayed,Business,On Time,
+6176,bJcH4B,Dominica,Brown,Female,43,Sweden,Philadelphia Seaplane Base,US,United States,NAM,North America,9/30/2022,PSQ,Dominica Penhearow,Cancelled,Business,On Time,
+14332,jGuwRa,Dominica,Brown,Female,39,Zimbabwe,Masirah Air Base,OM,Oman,AS,Asia,12/4/2022,MSH,Dominica Danielsky,Cancelled,Business,On Time,
+15036,nTGg0i,Dominica,Lightman,Male,36,Indonesia,Ramon Air Base,IL,Israel,AS,Asia,8/27/2022,MIP,Dominica Lightman,On Time,Business,On Time,
+52391,fPGjnx,Dominica,Grocutt,Male,20,Indonesia,Bullfrog Basin Airport,US,United States,NAM,North America,1/7/2022,BFG,Dominica Grocutt,On Time,Business,On Time,
+52956,XBfS7r,Dominica,Eldershaw,Female,89,China,Hamadan Airport,IR,"Iran, Islamic Republic of",AS,Asia,12/1/2022,HDM,Dominica Eldershaw,On Time,Business,On Time,
+54472,tSk25g,Dominica,Rippon,Female,34,China,Lindu Airport,CN,China,AS,Asia,2/10/2022,LDS,Dominica Rippon,Delayed,Business,On Time,
+60320,HtTg5t,Dominica,Rowen,Female,22,Indonesia,Gettysburg Regional Airport,US,United States,NAM,North America,11/19/2022,GTY,Dominica Rowen,Cancelled,Business,On Time,
+67395,NTeEqQ,Dominica,Ficken,Female,14,Kazakhstan,Laurie River Airport,CA,Canada,NAM,North America,7/8/2022,LRQ,Dominica Ficken,Cancelled,Business,On Time,
+76228,BcpaoR,Dominica,Friend,Female,17,China,Felker Army Air Field,US,United States,NAM,North America,11/2/2022,FAF,Dominica Friend,On Time,Business,On Time,
+87262,MyfZfQ,Dominica,Obispo,Female,55,United States,Kastelorizo Airport,GR,Greece,EU,Europe,3/1/2022,KZS,Dominica Obispo,On Time,Business,On Time,

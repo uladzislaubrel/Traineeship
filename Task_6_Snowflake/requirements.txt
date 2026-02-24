@@ -1,0 +1,5 @@
+apache-airflow-providers-mongo
+pandas
+pymongo
+apache-airflow-providers-snowflake
+apache-airflow-providers-common-sql
