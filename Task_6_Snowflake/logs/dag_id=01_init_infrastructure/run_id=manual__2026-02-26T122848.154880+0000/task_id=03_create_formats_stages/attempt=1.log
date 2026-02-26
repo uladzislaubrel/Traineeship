@@ -1,0 +1,75 @@
+[2026-02-26T12:29:01.881+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2026-02-26T12:29:01.909+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: 01_init_infrastructure.03_create_formats_stages manual__2026-02-26T12:28:48.154880+00:00 [queued]>
+[2026-02-26T12:29:01.923+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: 01_init_infrastructure.03_create_formats_stages manual__2026-02-26T12:28:48.154880+00:00 [queued]>
+[2026-02-26T12:29:01.925+0000] {taskinstance.py:2884} INFO - Starting attempt 1 of 1
+[2026-02-26T12:29:02.089+0000] {taskinstance.py:2907} INFO - Executing <Task(SQLExecuteQueryOperator): 03_create_formats_stages> on 2026-02-26 12:28:48.154880+00:00
+[2026-02-26T12:29:02.098+0000] {standard_task_runner.py:72} INFO - Started process 3354 to run task
+[2026-02-26T12:29:02.105+0000] {standard_task_runner.py:104} INFO - Running: ['***', 'tasks', 'run', '01_init_infrastructure', '03_create_formats_stages', 'manual__2026-02-26T12:28:48.154880+00:00', '--job-id', '572', '--raw', '--subdir', 'DAGS_FOLDER/01_init_infrastructure.py', '--cfg-path', '/tmp/tmp_xqpbmf5']
+[2026-02-26T12:29:02.108+0000] {standard_task_runner.py:105} INFO - Job 572: Subtask 03_create_formats_stages
+[2026-02-26T12:29:02.196+0000] {task_command.py:467} INFO - Running <TaskInstance: 01_init_infrastructure.03_create_formats_stages manual__2026-02-26T12:28:48.154880+00:00 [running]> on host d54c9b653406
+[2026-02-26T12:29:02.311+0000] {taskinstance.py:3157} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='01_init_infrastructure' AIRFLOW_CTX_TASK_ID='03_create_formats_stages' AIRFLOW_CTX_EXECUTION_DATE='2026-02-26T12:28:48.154880+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2026-02-26T12:28:48.154880+00:00'
+[2026-02-26T12:29:02.314+0000] {logging_mixin.py:190} INFO - Task instance is in running state
+[2026-02-26T12:29:02.315+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: queued
+[2026-02-26T12:29:02.316+0000] {logging_mixin.py:190} INFO - Current task name:03_create_formats_stages state:running start_date:2026-02-26 12:29:01.911377+00:00
+[2026-02-26T12:29:02.317+0000] {logging_mixin.py:190} INFO - Dag name:01_init_infrastructure and current dag run status:running
+[2026-02-26T12:29:02.318+0000] {taskinstance.py:740} INFO - ::endgroup::
+[2026-02-26T12:29:02.319+0000] {sql.py:306} INFO - Executing: USE DATABASE AIRLINE_DWH;
+USE SCHEMA RAW_DATA;
+
+-- Format CSV
+CREATE OR REPLACE FILE FORMAT MY_CSV_FORMAT
+  TYPE = 'CSV'
+  FIELD_OPTIONALLY_ENCLOSED_BY = '"'
+  SKIP_HEADER = 1
+  NULL_IF = ('NULL', 'null', '');
+
+-- Stage
+CREATE OR REPLACE STAGE MY_INTERNAL_STAGE
+  FILE_FORMAT = MY_CSV_FORMAT;
+[2026-02-26T12:29:02.335+0000] {base.py:84} INFO - Retrieving connection 'snowflake_default'
+[2026-02-26T12:29:02.545+0000] {base.py:84} INFO - Retrieving connection 'snowflake_default'
+[2026-02-26T12:29:02.547+0000] {connection.py:486} INFO - Snowflake Connector for Python Version: 3.15.0, Python Version: 3.10.17, Platform: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.36
+[2026-02-26T12:29:02.548+0000] {connection.py:1391} INFO - Connecting to GLOBAL Snowflake domain
+[2026-02-26T12:29:03.576+0000] {snowflake.py:521} INFO - Running statement: USE DATABASE AIRLINE_DWH;, parameters: None
+[2026-02-26T12:29:03.578+0000] {sql.py:814} INFO - Running statement: USE DATABASE AIRLINE_DWH;, parameters: None
+[2026-02-26T12:29:03.658+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T12:29:03.660+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T12:29:03.662+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2abad-0005-0f17-0001-37ce000898fa
+[2026-02-26T12:29:03.663+0000] {snowflake.py:521} INFO - Running statement: USE SCHEMA RAW_DATA;, parameters: None
+[2026-02-26T12:29:03.664+0000] {sql.py:814} INFO - Running statement: USE SCHEMA RAW_DATA;, parameters: None
+[2026-02-26T12:29:03.742+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T12:29:03.744+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T12:29:03.745+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2abad-0005-0f0f-0001-37ce0008889e
+[2026-02-26T12:29:03.746+0000] {snowflake.py:521} INFO - Running statement: -- Format CSV
+CREATE OR REPLACE FILE FORMAT MY_CSV_FORMAT
+  TYPE = 'CSV'
+  FIELD_OPTIONALLY_ENCLOSED_BY = '"'
+  SKIP_HEADER = 1
+  NULL_IF = ('NULL', 'null', '');, parameters: None
+[2026-02-26T12:29:03.746+0000] {sql.py:814} INFO - Running statement: -- Format CSV
+CREATE OR REPLACE FILE FORMAT MY_CSV_FORMAT
+  TYPE = 'CSV'
+  FIELD_OPTIONALLY_ENCLOSED_BY = '"'
+  SKIP_HEADER = 1
+  NULL_IF = ('NULL', 'null', '');, parameters: None
+[2026-02-26T12:29:03.854+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T12:29:03.857+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T12:29:03.860+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2abad-0005-0f17-0001-37ce000898fe
+[2026-02-26T12:29:03.863+0000] {snowflake.py:521} INFO - Running statement: -- Stage
+CREATE OR REPLACE STAGE MY_INTERNAL_STAGE
+  FILE_FORMAT = MY_CSV_FORMAT;, parameters: None
+[2026-02-26T12:29:03.866+0000] {sql.py:814} INFO - Running statement: -- Stage
+CREATE OR REPLACE STAGE MY_INTERNAL_STAGE
+  FILE_FORMAT = MY_CSV_FORMAT;, parameters: None
+[2026-02-26T12:29:03.996+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T12:29:03.998+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T12:29:03.999+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2abad-0005-0f0f-0001-37ce000888a2
+[2026-02-26T12:29:04.211+0000] {taskinstance.py:349} INFO - ::group::Post task execution logs
+[2026-02-26T12:29:04.213+0000] {taskinstance.py:361} INFO - Marking task as SUCCESS. dag_id=01_init_infrastructure, task_id=03_create_formats_stages, run_id=manual__2026-02-26T12:28:48.154880+00:00, execution_date=20260226T122848, start_date=20260226T122901, end_date=20260226T122904
+[2026-02-26T12:29:04.257+0000] {logging_mixin.py:190} INFO - Task instance in success state
+[2026-02-26T12:29:04.259+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: running
+[2026-02-26T12:29:04.260+0000] {logging_mixin.py:190} INFO - Dag name:01_init_infrastructure queued_at:2026-02-26 12:28:48.172982+00:00
+[2026-02-26T12:29:04.262+0000] {logging_mixin.py:190} INFO - Task hostname:d54c9b653406 operator:SQLExecuteQueryOperator
+[2026-02-26T12:29:04.290+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2026-02-26T12:29:04.320+0000] {taskinstance.py:3924} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2026-02-26T12:29:04.325+0000] {local_task_job_runner.py:245} INFO - ::endgroup::

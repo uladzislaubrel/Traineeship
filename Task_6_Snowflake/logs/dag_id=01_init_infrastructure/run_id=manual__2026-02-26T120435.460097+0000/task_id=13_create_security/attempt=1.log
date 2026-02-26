@@ -1,0 +1,109 @@
+[2026-02-26T12:12:37.364+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2026-02-26T12:12:37.395+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: 01_init_infrastructure.13_create_security manual__2026-02-26T12:04:35.460097+00:00 [queued]>
+[2026-02-26T12:12:37.407+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: 01_init_infrastructure.13_create_security manual__2026-02-26T12:04:35.460097+00:00 [queued]>
+[2026-02-26T12:12:37.410+0000] {taskinstance.py:2884} INFO - Starting attempt 1 of 1
+[2026-02-26T12:12:37.537+0000] {taskinstance.py:2907} INFO - Executing <Task(SQLExecuteQueryOperator): 13_create_security> on 2026-02-26 12:04:35.460097+00:00
+[2026-02-26T12:12:37.545+0000] {standard_task_runner.py:72} INFO - Started process 2931 to run task
+[2026-02-26T12:12:37.551+0000] {standard_task_runner.py:104} INFO - Running: ['***', 'tasks', 'run', '01_init_infrastructure', '13_create_security', 'manual__2026-02-26T12:04:35.460097+00:00', '--job-id', '521', '--raw', '--subdir', 'DAGS_FOLDER/01_init_infrastructure.py', '--cfg-path', '/tmp/tmpn6qoq5_p']
+[2026-02-26T12:12:37.554+0000] {standard_task_runner.py:105} INFO - Job 521: Subtask 13_create_security
+[2026-02-26T12:12:37.623+0000] {task_command.py:467} INFO - Running <TaskInstance: 01_init_infrastructure.13_create_security manual__2026-02-26T12:04:35.460097+00:00 [running]> on host d54c9b653406
+[2026-02-26T12:12:37.703+0000] {taskinstance.py:3157} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='01_init_infrastructure' AIRFLOW_CTX_TASK_ID='13_create_security' AIRFLOW_CTX_EXECUTION_DATE='2026-02-26T12:04:35.460097+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2026-02-26T12:04:35.460097+00:00'
+[2026-02-26T12:12:37.707+0000] {logging_mixin.py:190} INFO - Task instance is in running state
+[2026-02-26T12:12:37.708+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: queued
+[2026-02-26T12:12:37.709+0000] {logging_mixin.py:190} INFO - Current task name:13_create_security state:running start_date:2026-02-26 12:12:37.397762+00:00
+[2026-02-26T12:12:37.710+0000] {logging_mixin.py:190} INFO - Dag name:01_init_infrastructure and current dag run status:running
+[2026-02-26T12:12:37.711+0000] {taskinstance.py:740} INFO - ::endgroup::
+[2026-02-26T12:12:37.713+0000] {sql.py:306} INFO - Executing: USE DATABASE AIRLINE_DWH;
+USE SCHEMA GOLD_DATA;
+
+-- Using Standard Edition it is impossible to create object POLICY.
+-- So Row Level Security (RLS) will be in SECURE VIEW.
+
+-- 1. Create SECURE VIEW
+-- Keyword SECURE hides code of view from users
+CREATE OR REPLACE SECURE VIEW REPORT_FACT_FLIGHTS_SECURE AS
+SELECT 
+    F.flight_sk,
+    P.first_name,
+    P.last_name,
+    A.country_name,
+    F.ticket_type,
+    F.flight_status
+FROM AIRLINE_DWH.SILVER_DATA.FACT_AIRLINE F
+JOIN AIRLINE_DWH.SILVER_DATA.DIM_PASSENGERS P ON F.passenger_sk = P.passenger_sk
+JOIN AIRLINE_DWH.SILVER_DATA.DIM_AIRPORTS A ON F.airport_sk = A.airport_sk
+WHERE 
+    CASE 
+        WHEN CURRENT_ROLE() = 'ACCOUNTADMIN' THEN TRUE
+        WHEN F.ticket_type = 'Business' THEN TRUE
+        ELSE FALSE
+    END;
+[2026-02-26T12:12:37.729+0000] {base.py:84} INFO - Retrieving connection 'snowflake_default'
+[2026-02-26T12:12:37.873+0000] {base.py:84} INFO - Retrieving connection 'snowflake_default'
+[2026-02-26T12:12:37.875+0000] {connection.py:486} INFO - Snowflake Connector for Python Version: 3.15.0, Python Version: 3.10.17, Platform: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.36
+[2026-02-26T12:12:37.877+0000] {connection.py:1391} INFO - Connecting to GLOBAL Snowflake domain
+[2026-02-26T12:12:38.263+0000] {snowflake.py:521} INFO - Running statement: USE DATABASE AIRLINE_DWH;, parameters: None
+[2026-02-26T12:12:38.265+0000] {sql.py:814} INFO - Running statement: USE DATABASE AIRLINE_DWH;, parameters: None
+[2026-02-26T12:12:38.346+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T12:12:38.348+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T12:12:38.349+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2ab9c-0005-0f17-0001-37ce0008907e
+[2026-02-26T12:12:38.351+0000] {snowflake.py:521} INFO - Running statement: USE SCHEMA GOLD_DATA;, parameters: None
+[2026-02-26T12:12:38.352+0000] {sql.py:814} INFO - Running statement: USE SCHEMA GOLD_DATA;, parameters: None
+[2026-02-26T12:12:38.441+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T12:12:38.442+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T12:12:38.444+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2ab9c-0005-0f1f-0001-37ce0008708e
+[2026-02-26T12:12:38.445+0000] {snowflake.py:521} INFO - Running statement: -- Using Standard Edition it is impossible to create object POLICY.
+-- So Row Level Security (RLS) will be in SECURE VIEW.
+
+-- 1. Create SECURE VIEW
+-- Keyword SECURE hides code of view from users
+CREATE OR REPLACE SECURE VIEW REPORT_FACT_FLIGHTS_SECURE AS
+SELECT 
+    F.flight_sk,
+    P.first_name,
+    P.last_name,
+    A.country_name,
+    F.ticket_type,
+    F.flight_status
+FROM AIRLINE_DWH.SILVER_DATA.FACT_AIRLINE F
+JOIN AIRLINE_DWH.SILVER_DATA.DIM_PASSENGERS P ON F.passenger_sk = P.passenger_sk
+JOIN AIRLINE_DWH.SILVER_DATA.DIM_AIRPORTS A ON F.airport_sk = A.airport_sk
+WHERE 
+    CASE 
+        WHEN CURRENT_ROLE() = 'ACCOUNTADMIN' THEN TRUE
+        WHEN F.ticket_type = 'Business' THEN TRUE
+        ELSE FALSE
+    END;, parameters: None
+[2026-02-26T12:12:38.447+0000] {sql.py:814} INFO - Running statement: -- Using Standard Edition it is impossible to create object POLICY.
+-- So Row Level Security (RLS) will be in SECURE VIEW.
+
+-- 1. Create SECURE VIEW
+-- Keyword SECURE hides code of view from users
+CREATE OR REPLACE SECURE VIEW REPORT_FACT_FLIGHTS_SECURE AS
+SELECT 
+    F.flight_sk,
+    P.first_name,
+    P.last_name,
+    A.country_name,
+    F.ticket_type,
+    F.flight_status
+FROM AIRLINE_DWH.SILVER_DATA.FACT_AIRLINE F
+JOIN AIRLINE_DWH.SILVER_DATA.DIM_PASSENGERS P ON F.passenger_sk = P.passenger_sk
+JOIN AIRLINE_DWH.SILVER_DATA.DIM_AIRPORTS A ON F.airport_sk = A.airport_sk
+WHERE 
+    CASE 
+        WHEN CURRENT_ROLE() = 'ACCOUNTADMIN' THEN TRUE
+        WHEN F.ticket_type = 'Business' THEN TRUE
+        ELSE FALSE
+    END;, parameters: None
+[2026-02-26T12:12:38.694+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T12:12:38.696+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T12:12:38.697+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2ab9c-0005-0f0f-0001-37ce0008809e
+[2026-02-26T12:12:38.916+0000] {taskinstance.py:349} INFO - ::group::Post task execution logs
+[2026-02-26T12:12:38.917+0000] {taskinstance.py:361} INFO - Marking task as SUCCESS. dag_id=01_init_infrastructure, task_id=13_create_security, run_id=manual__2026-02-26T12:04:35.460097+00:00, execution_date=20260226T120435, start_date=20260226T121237, end_date=20260226T121238
+[2026-02-26T12:12:38.957+0000] {logging_mixin.py:190} INFO - Task instance in success state
+[2026-02-26T12:12:38.958+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: running
+[2026-02-26T12:12:38.960+0000] {logging_mixin.py:190} INFO - Dag name:01_init_infrastructure queued_at:2026-02-26 12:04:35.477448+00:00
+[2026-02-26T12:12:38.961+0000] {logging_mixin.py:190} INFO - Task hostname:d54c9b653406 operator:SQLExecuteQueryOperator
+[2026-02-26T12:12:39.011+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2026-02-26T12:12:39.032+0000] {local_task_job_runner.py:245} INFO - ::endgroup::

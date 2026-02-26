@@ -1,0 +1,138 @@
+[2026-02-26T13:18:36.734+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2026-02-26T13:18:36.771+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: 01_init_infrastructure.04_create_bronze_layer manual__2026-02-26T13:18:17.367891+00:00 [queued]>
+[2026-02-26T13:18:36.788+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: 01_init_infrastructure.04_create_bronze_layer manual__2026-02-26T13:18:17.367891+00:00 [queued]>
+[2026-02-26T13:18:36.793+0000] {taskinstance.py:2884} INFO - Starting attempt 1 of 1
+[2026-02-26T13:18:36.984+0000] {taskinstance.py:2907} INFO - Executing <Task(SQLExecuteQueryOperator): 04_create_bronze_layer> on 2026-02-26 13:18:17.367891+00:00
+[2026-02-26T13:18:36.994+0000] {standard_task_runner.py:72} INFO - Started process 4384 to run task
+[2026-02-26T13:18:37.002+0000] {standard_task_runner.py:104} INFO - Running: ['***', 'tasks', 'run', '01_init_infrastructure', '04_create_bronze_layer', 'manual__2026-02-26T13:18:17.367891+00:00', '--job-id', '663', '--raw', '--subdir', 'DAGS_FOLDER/01_init_infrastructure.py', '--cfg-path', '/tmp/tmp4tnxlycw']
+[2026-02-26T13:18:37.004+0000] {standard_task_runner.py:105} INFO - Job 663: Subtask 04_create_bronze_layer
+[2026-02-26T13:18:37.099+0000] {task_command.py:467} INFO - Running <TaskInstance: 01_init_infrastructure.04_create_bronze_layer manual__2026-02-26T13:18:17.367891+00:00 [running]> on host d54c9b653406
+[2026-02-26T13:18:37.215+0000] {taskinstance.py:3157} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='01_init_infrastructure' AIRFLOW_CTX_TASK_ID='04_create_bronze_layer' AIRFLOW_CTX_EXECUTION_DATE='2026-02-26T13:18:17.367891+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2026-02-26T13:18:17.367891+00:00'
+[2026-02-26T13:18:37.218+0000] {logging_mixin.py:190} INFO - Task instance is in running state
+[2026-02-26T13:18:37.219+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: queued
+[2026-02-26T13:18:37.220+0000] {logging_mixin.py:190} INFO - Current task name:04_create_bronze_layer state:running start_date:2026-02-26 13:18:36.773275+00:00
+[2026-02-26T13:18:37.221+0000] {logging_mixin.py:190} INFO - Dag name:01_init_infrastructure and current dag run status:running
+[2026-02-26T13:18:37.222+0000] {taskinstance.py:740} INFO - ::endgroup::
+[2026-02-26T13:18:37.224+0000] {sql.py:306} INFO - Executing: USE DATABASE AIRLINE_DWH;
+USE SCHEMA RAW_DATA;
+
+-- Raw Data
+CREATE OR REPLACE TABLE AIRLINE_RAW (
+    row_id VARCHAR,
+    passenger_id VARCHAR,
+    first_name VARCHAR,
+    last_name VARCHAR,
+    gender VARCHAR,
+    age VARCHAR,
+    nationality VARCHAR,
+    airport_name VARCHAR,
+    airport_country_code VARCHAR,
+    country_name VARCHAR,
+    airport_continent VARCHAR,
+    continents VARCHAR,
+    departure_date VARCHAR,
+    arrival_airport VARCHAR,
+    pilot_name VARCHAR,
+    flight_status VARCHAR,
+    ticket_type VARCHAR,
+    passenger_status VARCHAR,
+    ingestion_time TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+);
+
+-- Stream, Fan-out pattern
+CREATE OR REPLACE STREAM STREAM_FOR_PASSENGERS ON TABLE AIRLINE_RAW;
+CREATE OR REPLACE STREAM STREAM_FOR_PILOTS     ON TABLE AIRLINE_RAW;
+CREATE OR REPLACE STREAM STREAM_FOR_AIRPORTS   ON TABLE AIRLINE_RAW;
+CREATE OR REPLACE STREAM STREAM_FOR_FACTS      ON TABLE AIRLINE_RAW;
+[2026-02-26T13:18:37.241+0000] {base.py:84} INFO - Retrieving connection 'snowflake_default'
+[2026-02-26T13:18:37.450+0000] {base.py:84} INFO - Retrieving connection 'snowflake_default'
+[2026-02-26T13:18:37.452+0000] {connection.py:486} INFO - Snowflake Connector for Python Version: 3.15.0, Python Version: 3.10.17, Platform: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.36
+[2026-02-26T13:18:37.454+0000] {connection.py:1391} INFO - Connecting to GLOBAL Snowflake domain
+[2026-02-26T13:18:37.981+0000] {snowflake.py:521} INFO - Running statement: USE DATABASE AIRLINE_DWH;, parameters: None
+[2026-02-26T13:18:37.983+0000] {sql.py:814} INFO - Running statement: USE DATABASE AIRLINE_DWH;, parameters: None
+[2026-02-26T13:18:38.067+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T13:18:38.069+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T13:18:38.071+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2abde-0005-0f17-0001-37ce0008b08e
+[2026-02-26T13:18:38.072+0000] {snowflake.py:521} INFO - Running statement: USE SCHEMA RAW_DATA;, parameters: None
+[2026-02-26T13:18:38.073+0000] {sql.py:814} INFO - Running statement: USE SCHEMA RAW_DATA;, parameters: None
+[2026-02-26T13:18:38.158+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T13:18:38.160+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T13:18:38.162+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2abde-0005-0f1f-0001-37ce00087ade
+[2026-02-26T13:18:38.164+0000] {snowflake.py:521} INFO - Running statement: -- Raw Data
+CREATE OR REPLACE TABLE AIRLINE_RAW (
+    row_id VARCHAR,
+    passenger_id VARCHAR,
+    first_name VARCHAR,
+    last_name VARCHAR,
+    gender VARCHAR,
+    age VARCHAR,
+    nationality VARCHAR,
+    airport_name VARCHAR,
+    airport_country_code VARCHAR,
+    country_name VARCHAR,
+    airport_continent VARCHAR,
+    continents VARCHAR,
+    departure_date VARCHAR,
+    arrival_airport VARCHAR,
+    pilot_name VARCHAR,
+    flight_status VARCHAR,
+    ticket_type VARCHAR,
+    passenger_status VARCHAR,
+    ingestion_time TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+);, parameters: None
+[2026-02-26T13:18:38.166+0000] {sql.py:814} INFO - Running statement: -- Raw Data
+CREATE OR REPLACE TABLE AIRLINE_RAW (
+    row_id VARCHAR,
+    passenger_id VARCHAR,
+    first_name VARCHAR,
+    last_name VARCHAR,
+    gender VARCHAR,
+    age VARCHAR,
+    nationality VARCHAR,
+    airport_name VARCHAR,
+    airport_country_code VARCHAR,
+    country_name VARCHAR,
+    airport_continent VARCHAR,
+    continents VARCHAR,
+    departure_date VARCHAR,
+    arrival_airport VARCHAR,
+    pilot_name VARCHAR,
+    flight_status VARCHAR,
+    ticket_type VARCHAR,
+    passenger_status VARCHAR,
+    ingestion_time TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+);, parameters: None
+[2026-02-26T13:18:38.396+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T13:18:38.400+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T13:18:38.403+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2abde-0005-0f17-0001-37ce0008b092
+[2026-02-26T13:18:38.405+0000] {snowflake.py:521} INFO - Running statement: -- Stream, Fan-out pattern
+CREATE OR REPLACE STREAM STREAM_FOR_PASSENGERS ON TABLE AIRLINE_RAW;, parameters: None
+[2026-02-26T13:18:38.406+0000] {sql.py:814} INFO - Running statement: -- Stream, Fan-out pattern
+CREATE OR REPLACE STREAM STREAM_FOR_PASSENGERS ON TABLE AIRLINE_RAW;, parameters: None
+[2026-02-26T13:18:39.103+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T13:18:39.105+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T13:18:39.106+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2abde-0005-0f1f-0001-37ce00087ae2
+[2026-02-26T13:18:39.107+0000] {snowflake.py:521} INFO - Running statement: CREATE OR REPLACE STREAM STREAM_FOR_PILOTS     ON TABLE AIRLINE_RAW;, parameters: None
+[2026-02-26T13:18:39.108+0000] {sql.py:814} INFO - Running statement: CREATE OR REPLACE STREAM STREAM_FOR_PILOTS     ON TABLE AIRLINE_RAW;, parameters: None
+[2026-02-26T13:18:39.242+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T13:18:39.243+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T13:18:39.244+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2abde-0005-0f17-0001-37ce0008b096
+[2026-02-26T13:18:39.246+0000] {snowflake.py:521} INFO - Running statement: CREATE OR REPLACE STREAM STREAM_FOR_AIRPORTS   ON TABLE AIRLINE_RAW;, parameters: None
+[2026-02-26T13:18:39.247+0000] {sql.py:814} INFO - Running statement: CREATE OR REPLACE STREAM STREAM_FOR_AIRPORTS   ON TABLE AIRLINE_RAW;, parameters: None
+[2026-02-26T13:18:39.375+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T13:18:39.377+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T13:18:39.379+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2abde-0005-0f1f-0001-37ce00087ae6
+[2026-02-26T13:18:39.382+0000] {snowflake.py:521} INFO - Running statement: CREATE OR REPLACE STREAM STREAM_FOR_FACTS      ON TABLE AIRLINE_RAW;, parameters: None
+[2026-02-26T13:18:39.383+0000] {sql.py:814} INFO - Running statement: CREATE OR REPLACE STREAM STREAM_FOR_FACTS      ON TABLE AIRLINE_RAW;, parameters: None
+[2026-02-26T13:18:39.515+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T13:18:39.517+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T13:18:39.518+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2abde-0005-0f17-0001-37ce0008b09a
+[2026-02-26T13:18:39.739+0000] {taskinstance.py:349} INFO - ::group::Post task execution logs
+[2026-02-26T13:18:39.741+0000] {taskinstance.py:361} INFO - Marking task as SUCCESS. dag_id=01_init_infrastructure, task_id=04_create_bronze_layer, run_id=manual__2026-02-26T13:18:17.367891+00:00, execution_date=20260226T131817, start_date=20260226T131836, end_date=20260226T131839
+[2026-02-26T13:18:39.779+0000] {logging_mixin.py:190} INFO - Task instance in success state
+[2026-02-26T13:18:39.781+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: running
+[2026-02-26T13:18:39.783+0000] {logging_mixin.py:190} INFO - Dag name:01_init_infrastructure queued_at:2026-02-26 13:18:17.396222+00:00
+[2026-02-26T13:18:39.784+0000] {logging_mixin.py:190} INFO - Task hostname:d54c9b653406 operator:SQLExecuteQueryOperator
+[2026-02-26T13:18:39.828+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2026-02-26T13:18:39.872+0000] {taskinstance.py:3924} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2026-02-26T13:18:39.876+0000] {local_task_job_runner.py:245} INFO - ::endgroup::

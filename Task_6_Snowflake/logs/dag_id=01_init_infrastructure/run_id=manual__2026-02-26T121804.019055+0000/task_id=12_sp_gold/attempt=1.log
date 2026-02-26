@@ -1,0 +1,124 @@
+[2026-02-26T12:18:58.301+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2026-02-26T12:18:58.331+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: 01_init_infrastructure.12_sp_gold manual__2026-02-26T12:18:04.019055+00:00 [queued]>
+[2026-02-26T12:18:58.347+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: 01_init_infrastructure.12_sp_gold manual__2026-02-26T12:18:04.019055+00:00 [queued]>
+[2026-02-26T12:18:58.349+0000] {taskinstance.py:2884} INFO - Starting attempt 1 of 1
+[2026-02-26T12:18:58.504+0000] {taskinstance.py:2907} INFO - Executing <Task(SQLExecuteQueryOperator): 12_sp_gold> on 2026-02-26 12:18:04.019055+00:00
+[2026-02-26T12:18:58.513+0000] {standard_task_runner.py:72} INFO - Started process 3131 to run task
+[2026-02-26T12:18:58.520+0000] {standard_task_runner.py:104} INFO - Running: ['***', 'tasks', 'run', '01_init_infrastructure', '12_sp_gold', 'manual__2026-02-26T12:18:04.019055+00:00', '--job-id', '551', '--raw', '--subdir', 'DAGS_FOLDER/01_init_infrastructure.py', '--cfg-path', '/tmp/tmpt3uiehw9']
+[2026-02-26T12:18:58.522+0000] {standard_task_runner.py:105} INFO - Job 551: Subtask 12_sp_gold
+[2026-02-26T12:18:58.604+0000] {task_command.py:467} INFO - Running <TaskInstance: 01_init_infrastructure.12_sp_gold manual__2026-02-26T12:18:04.019055+00:00 [running]> on host d54c9b653406
+[2026-02-26T12:18:58.732+0000] {taskinstance.py:3157} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='01_init_infrastructure' AIRFLOW_CTX_TASK_ID='12_sp_gold' AIRFLOW_CTX_EXECUTION_DATE='2026-02-26T12:18:04.019055+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2026-02-26T12:18:04.019055+00:00'
+[2026-02-26T12:18:58.735+0000] {logging_mixin.py:190} INFO - Task instance is in running state
+[2026-02-26T12:18:58.737+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: queued
+[2026-02-26T12:18:58.738+0000] {logging_mixin.py:190} INFO - Current task name:12_sp_gold state:running start_date:2026-02-26 12:18:58.333211+00:00
+[2026-02-26T12:18:58.740+0000] {logging_mixin.py:190} INFO - Dag name:01_init_infrastructure and current dag run status:running
+[2026-02-26T12:18:58.741+0000] {taskinstance.py:740} INFO - ::endgroup::
+[2026-02-26T12:18:58.742+0000] {sql.py:306} INFO - Executing: CREATE OR REPLACE PROCEDURE AIRLINE_DWH.GOLD_DATA.SP_REFRESH_GOLD_REPORT()
+RETURNS VARCHAR
+LANGUAGE SQL
+EXECUTE AS CALLER
+AS
+$$
+DECLARE
+    rows_affected INT;
+BEGIN
+    BEGIN TRANSACTION;
+    CREATE OR REPLACE TABLE AIRLINE_DWH.GOLD_DATA.FLIGHTS_BY_COUNTRY_REPORT AS
+    SELECT 
+        A.country_name,
+        COUNT(F.flight_sk) as total_flights,
+        COUNT(DISTINCT F.pilot_sk) as distinct_pilots,
+        MAX(F.departure_date) as last_flight_date
+    FROM AIRLINE_DWH.SILVER_DATA.FACT_AIRLINE F
+    JOIN AIRLINE_DWH.SILVER_DATA.DIM_AIRPORTS A ON F.airport_sk = A.airport_sk
+    GROUP BY A.country_name
+    ORDER BY total_flights DESC;
+
+    rows_affected := SQLROWCOUNT;
+
+    INSERT INTO AIRLINE_DWH.UTILS.ETL_LOGS (process_name, layer, rows_affected, status)
+    VALUES ('SP_REFRESH_GOLD_REPORT', 'GOLD', :rows_affected, 'SUCCESS');
+
+    COMMIT;
+    RETURN 'Gold Report Refreshed. Rows: ' || :rows_affected;
+
+END;
+$$;
+[2026-02-26T12:18:58.757+0000] {base.py:84} INFO - Retrieving connection 'snowflake_default'
+[2026-02-26T12:18:58.945+0000] {base.py:84} INFO - Retrieving connection 'snowflake_default'
+[2026-02-26T12:18:58.947+0000] {connection.py:486} INFO - Snowflake Connector for Python Version: 3.15.0, Python Version: 3.10.17, Platform: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.36
+[2026-02-26T12:18:58.950+0000] {connection.py:1391} INFO - Connecting to GLOBAL Snowflake domain
+[2026-02-26T12:18:59.414+0000] {snowflake.py:521} INFO - Running statement: CREATE OR REPLACE PROCEDURE AIRLINE_DWH.GOLD_DATA.SP_REFRESH_GOLD_REPORT()
+RETURNS VARCHAR
+LANGUAGE SQL
+EXECUTE AS CALLER
+AS
+$$
+DECLARE
+    rows_affected INT;
+BEGIN
+    BEGIN TRANSACTION;
+    CREATE OR REPLACE TABLE AIRLINE_DWH.GOLD_DATA.FLIGHTS_BY_COUNTRY_REPORT AS
+    SELECT 
+        A.country_name,
+        COUNT(F.flight_sk) as total_flights,
+        COUNT(DISTINCT F.pilot_sk) as distinct_pilots,
+        MAX(F.departure_date) as last_flight_date
+    FROM AIRLINE_DWH.SILVER_DATA.FACT_AIRLINE F
+    JOIN AIRLINE_DWH.SILVER_DATA.DIM_AIRPORTS A ON F.airport_sk = A.airport_sk
+    GROUP BY A.country_name
+    ORDER BY total_flights DESC;
+
+    rows_affected := SQLROWCOUNT;
+
+    INSERT INTO AIRLINE_DWH.UTILS.ETL_LOGS (process_name, layer, rows_affected, status)
+    VALUES ('SP_REFRESH_GOLD_REPORT', 'GOLD', :rows_affected, 'SUCCESS');
+
+    COMMIT;
+    RETURN 'Gold Report Refreshed. Rows: ' || :rows_affected;
+
+END;
+$$;, parameters: None
+[2026-02-26T12:18:59.415+0000] {sql.py:814} INFO - Running statement: CREATE OR REPLACE PROCEDURE AIRLINE_DWH.GOLD_DATA.SP_REFRESH_GOLD_REPORT()
+RETURNS VARCHAR
+LANGUAGE SQL
+EXECUTE AS CALLER
+AS
+$$
+DECLARE
+    rows_affected INT;
+BEGIN
+    BEGIN TRANSACTION;
+    CREATE OR REPLACE TABLE AIRLINE_DWH.GOLD_DATA.FLIGHTS_BY_COUNTRY_REPORT AS
+    SELECT 
+        A.country_name,
+        COUNT(F.flight_sk) as total_flights,
+        COUNT(DISTINCT F.pilot_sk) as distinct_pilots,
+        MAX(F.departure_date) as last_flight_date
+    FROM AIRLINE_DWH.SILVER_DATA.FACT_AIRLINE F
+    JOIN AIRLINE_DWH.SILVER_DATA.DIM_AIRPORTS A ON F.airport_sk = A.airport_sk
+    GROUP BY A.country_name
+    ORDER BY total_flights DESC;
+
+    rows_affected := SQLROWCOUNT;
+
+    INSERT INTO AIRLINE_DWH.UTILS.ETL_LOGS (process_name, layer, rows_affected, status)
+    VALUES ('SP_REFRESH_GOLD_REPORT', 'GOLD', :rows_affected, 'SUCCESS');
+
+    COMMIT;
+    RETURN 'Gold Report Refreshed. Rows: ' || :rows_affected;
+
+END;
+$$;, parameters: None
+[2026-02-26T12:18:59.568+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T12:18:59.570+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T12:18:59.571+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2aba2-0005-0f1f-0001-37ce000877c6
+[2026-02-26T12:18:59.790+0000] {taskinstance.py:349} INFO - ::group::Post task execution logs
+[2026-02-26T12:18:59.791+0000] {taskinstance.py:361} INFO - Marking task as SUCCESS. dag_id=01_init_infrastructure, task_id=12_sp_gold, run_id=manual__2026-02-26T12:18:04.019055+00:00, execution_date=20260226T121804, start_date=20260226T121858, end_date=20260226T121859
+[2026-02-26T12:18:59.823+0000] {logging_mixin.py:190} INFO - Task instance in success state
+[2026-02-26T12:18:59.825+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: running
+[2026-02-26T12:18:59.827+0000] {logging_mixin.py:190} INFO - Dag name:01_init_infrastructure queued_at:2026-02-26 12:18:04.031568+00:00
+[2026-02-26T12:18:59.828+0000] {logging_mixin.py:190} INFO - Task hostname:d54c9b653406 operator:SQLExecuteQueryOperator
+[2026-02-26T12:18:59.859+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2026-02-26T12:18:59.889+0000] {taskinstance.py:3924} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2026-02-26T12:18:59.893+0000] {local_task_job_runner.py:245} INFO - ::endgroup::

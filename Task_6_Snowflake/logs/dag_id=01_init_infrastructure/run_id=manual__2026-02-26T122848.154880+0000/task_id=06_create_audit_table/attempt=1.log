@@ -1,0 +1,74 @@
+[2026-02-26T12:29:17.807+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2026-02-26T12:29:17.840+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: 01_init_infrastructure.06_create_audit_table manual__2026-02-26T12:28:48.154880+00:00 [queued]>
+[2026-02-26T12:29:17.858+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: 01_init_infrastructure.06_create_audit_table manual__2026-02-26T12:28:48.154880+00:00 [queued]>
+[2026-02-26T12:29:17.859+0000] {taskinstance.py:2884} INFO - Starting attempt 1 of 1
+[2026-02-26T12:29:18.049+0000] {taskinstance.py:2907} INFO - Executing <Task(SQLExecuteQueryOperator): 06_create_audit_table> on 2026-02-26 12:28:48.154880+00:00
+[2026-02-26T12:29:18.063+0000] {standard_task_runner.py:72} INFO - Started process 3373 to run task
+[2026-02-26T12:29:18.070+0000] {standard_task_runner.py:104} INFO - Running: ['***', 'tasks', 'run', '01_init_infrastructure', '06_create_audit_table', 'manual__2026-02-26T12:28:48.154880+00:00', '--job-id', '575', '--raw', '--subdir', 'DAGS_FOLDER/01_init_infrastructure.py', '--cfg-path', '/tmp/tmpuqjbghjv']
+[2026-02-26T12:29:18.073+0000] {standard_task_runner.py:105} INFO - Job 575: Subtask 06_create_audit_table
+[2026-02-26T12:29:18.177+0000] {task_command.py:467} INFO - Running <TaskInstance: 01_init_infrastructure.06_create_audit_table manual__2026-02-26T12:28:48.154880+00:00 [running]> on host d54c9b653406
+[2026-02-26T12:29:18.308+0000] {taskinstance.py:3157} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='01_init_infrastructure' AIRFLOW_CTX_TASK_ID='06_create_audit_table' AIRFLOW_CTX_EXECUTION_DATE='2026-02-26T12:28:48.154880+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2026-02-26T12:28:48.154880+00:00'
+[2026-02-26T12:29:18.312+0000] {logging_mixin.py:190} INFO - Task instance is in running state
+[2026-02-26T12:29:18.313+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: queued
+[2026-02-26T12:29:18.314+0000] {logging_mixin.py:190} INFO - Current task name:06_create_audit_table state:running start_date:2026-02-26 12:29:17.842844+00:00
+[2026-02-26T12:29:18.314+0000] {logging_mixin.py:190} INFO - Dag name:01_init_infrastructure and current dag run status:running
+[2026-02-26T12:29:18.315+0000] {taskinstance.py:740} INFO - ::endgroup::
+[2026-02-26T12:29:18.316+0000] {sql.py:306} INFO - Executing: USE DATABASE AIRLINE_DWH;
+USE SCHEMA UTILS;
+
+CREATE TABLE IF NOT EXISTS ETL_LOGS (
+    log_id NUMBER IDENTITY(1,1),
+    run_id VARCHAR,              -- ID from Airflow
+    process_name VARCHAR,        -- procedure name
+    layer VARCHAR,               -- Bronze/Silver/Gold
+    rows_affected INT,           -- how many rows inserted
+    status VARCHAR,              -- SUCCESS / ERROR
+    error_message VARCHAR,
+    created_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+);
+[2026-02-26T12:29:18.336+0000] {base.py:84} INFO - Retrieving connection 'snowflake_default'
+[2026-02-26T12:29:18.649+0000] {base.py:84} INFO - Retrieving connection 'snowflake_default'
+[2026-02-26T12:29:18.651+0000] {connection.py:486} INFO - Snowflake Connector for Python Version: 3.15.0, Python Version: 3.10.17, Platform: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.36
+[2026-02-26T12:29:18.653+0000] {connection.py:1391} INFO - Connecting to GLOBAL Snowflake domain
+[2026-02-26T12:29:19.687+0000] {snowflake.py:521} INFO - Running statement: USE DATABASE AIRLINE_DWH;, parameters: None
+[2026-02-26T12:29:19.689+0000] {sql.py:814} INFO - Running statement: USE DATABASE AIRLINE_DWH;, parameters: None
+[2026-02-26T12:29:19.777+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T12:29:19.780+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T12:29:19.781+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2abad-0005-0f17-0001-37ce0008992e
+[2026-02-26T12:29:19.783+0000] {snowflake.py:521} INFO - Running statement: USE SCHEMA UTILS;, parameters: None
+[2026-02-26T12:29:19.785+0000] {sql.py:814} INFO - Running statement: USE SCHEMA UTILS;, parameters: None
+[2026-02-26T12:29:19.866+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T12:29:19.870+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T12:29:19.872+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2abad-0005-0f0f-0001-37ce000888c6
+[2026-02-26T12:29:19.878+0000] {snowflake.py:521} INFO - Running statement: CREATE TABLE IF NOT EXISTS ETL_LOGS (
+    log_id NUMBER IDENTITY(1,1),
+    run_id VARCHAR,              -- ID from Airflow
+    process_name VARCHAR,        -- procedure name
+    layer VARCHAR,               -- Bronze/Silver/Gold
+    rows_affected INT,           -- how many rows inserted
+    status VARCHAR,              -- SUCCESS / ERROR
+    error_message VARCHAR,
+    created_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+);, parameters: None
+[2026-02-26T12:29:19.880+0000] {sql.py:814} INFO - Running statement: CREATE TABLE IF NOT EXISTS ETL_LOGS (
+    log_id NUMBER IDENTITY(1,1),
+    run_id VARCHAR,              -- ID from Airflow
+    process_name VARCHAR,        -- procedure name
+    layer VARCHAR,               -- Bronze/Silver/Gold
+    rows_affected INT,           -- how many rows inserted
+    status VARCHAR,              -- SUCCESS / ERROR
+    error_message VARCHAR,
+    created_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+);, parameters: None
+[2026-02-26T12:29:20.079+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T12:29:20.080+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T12:29:20.081+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2abad-0005-0f0f-0001-37ce000888ca
+[2026-02-26T12:29:20.291+0000] {taskinstance.py:349} INFO - ::group::Post task execution logs
+[2026-02-26T12:29:20.297+0000] {taskinstance.py:361} INFO - Marking task as SUCCESS. dag_id=01_init_infrastructure, task_id=06_create_audit_table, run_id=manual__2026-02-26T12:28:48.154880+00:00, execution_date=20260226T122848, start_date=20260226T122917, end_date=20260226T122920
+[2026-02-26T12:29:20.333+0000] {logging_mixin.py:190} INFO - Task instance in success state
+[2026-02-26T12:29:20.334+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: running
+[2026-02-26T12:29:20.336+0000] {logging_mixin.py:190} INFO - Dag name:01_init_infrastructure queued_at:2026-02-26 12:28:48.172982+00:00
+[2026-02-26T12:29:20.338+0000] {logging_mixin.py:190} INFO - Task hostname:d54c9b653406 operator:SQLExecuteQueryOperator
+[2026-02-26T12:29:20.385+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2026-02-26T12:29:20.424+0000] {taskinstance.py:3924} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2026-02-26T12:29:20.426+0000] {local_task_job_runner.py:245} INFO - ::endgroup::

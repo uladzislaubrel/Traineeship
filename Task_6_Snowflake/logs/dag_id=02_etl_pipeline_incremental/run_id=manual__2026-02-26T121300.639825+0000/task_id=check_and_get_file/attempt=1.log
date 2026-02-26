@@ -1,0 +1,30 @@
+[2026-02-26T12:13:57.272+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2026-02-26T12:13:57.299+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: 02_etl_pipeline_incremental.check_and_get_file manual__2026-02-26T12:13:00.639825+00:00 [queued]>
+[2026-02-26T12:13:57.313+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: 02_etl_pipeline_incremental.check_and_get_file manual__2026-02-26T12:13:00.639825+00:00 [queued]>
+[2026-02-26T12:13:57.316+0000] {taskinstance.py:2884} INFO - Starting attempt 1 of 2
+[2026-02-26T12:13:57.503+0000] {taskinstance.py:2907} INFO - Executing <Task(ShortCircuitOperator): check_and_get_file> on 2026-02-26 12:13:00.639825+00:00
+[2026-02-26T12:13:57.512+0000] {standard_task_runner.py:72} INFO - Started process 3007 to run task
+[2026-02-26T12:13:57.518+0000] {standard_task_runner.py:104} INFO - Running: ['***', 'tasks', 'run', '02_etl_pipeline_incremental', 'check_and_get_file', 'manual__2026-02-26T12:13:00.639825+00:00', '--job-id', '536', '--raw', '--subdir', 'DAGS_FOLDER/02_etl_pipeline.py', '--cfg-path', '/tmp/tmpxuv7mnog']
+[2026-02-26T12:13:57.521+0000] {standard_task_runner.py:105} INFO - Job 536: Subtask check_and_get_file
+[2026-02-26T12:13:57.614+0000] {task_command.py:467} INFO - Running <TaskInstance: 02_etl_pipeline_incremental.check_and_get_file manual__2026-02-26T12:13:00.639825+00:00 [running]> on host d54c9b653406
+[2026-02-26T12:13:57.714+0000] {taskinstance.py:3157} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='02_etl_pipeline_incremental' AIRFLOW_CTX_TASK_ID='check_and_get_file' AIRFLOW_CTX_EXECUTION_DATE='2026-02-26T12:13:00.639825+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2026-02-26T12:13:00.639825+00:00'
+[2026-02-26T12:13:57.717+0000] {logging_mixin.py:190} INFO - Task instance is in running state
+[2026-02-26T12:13:57.719+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: queued
+[2026-02-26T12:13:57.720+0000] {logging_mixin.py:190} INFO - Current task name:check_and_get_file state:running start_date:2026-02-26 12:13:57.300990+00:00
+[2026-02-26T12:13:57.722+0000] {logging_mixin.py:190} INFO - Dag name:02_etl_pipeline_incremental and current dag run status:running
+[2026-02-26T12:13:57.724+0000] {taskinstance.py:740} INFO - ::endgroup::
+[2026-02-26T12:13:57.726+0000] {baseoperator.py:423} WARNING - ShortCircuitOperator.execute cannot be called outside TaskInstance!
+[2026-02-26T12:13:57.732+0000] {logging_mixin.py:190} INFO - There aren't new files. Pass.
+[2026-02-26T12:13:57.734+0000] {python.py:240} INFO - Done. Returned value was: False
+[2026-02-26T12:13:57.738+0000] {python.py:309} INFO - Condition result is False
+[2026-02-26T12:13:57.739+0000] {python.py:336} INFO - Skipping downstream tasks
+[2026-02-26T12:13:57.784+0000] {python.py:344} INFO - Done.
+[2026-02-26T12:13:57.815+0000] {taskinstance.py:349} INFO - ::group::Post task execution logs
+[2026-02-26T12:13:57.817+0000] {taskinstance.py:361} INFO - Marking task as SUCCESS. dag_id=02_etl_pipeline_incremental, task_id=check_and_get_file, run_id=manual__2026-02-26T12:13:00.639825+00:00, execution_date=20260226T121300, start_date=20260226T121357, end_date=20260226T121357
+[2026-02-26T12:13:57.847+0000] {logging_mixin.py:190} INFO - Task instance in success state
+[2026-02-26T12:13:57.848+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: running
+[2026-02-26T12:13:57.849+0000] {logging_mixin.py:190} INFO - Dag name:02_etl_pipeline_incremental queued_at:2026-02-26 12:13:00.659755+00:00
+[2026-02-26T12:13:57.850+0000] {logging_mixin.py:190} INFO - Task hostname:d54c9b653406 operator:ShortCircuitOperator
+[2026-02-26T12:13:57.893+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2026-02-26T12:13:57.909+0000] {taskinstance.py:3924} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2026-02-26T12:13:57.913+0000] {local_task_job_runner.py:245} INFO - ::endgroup::

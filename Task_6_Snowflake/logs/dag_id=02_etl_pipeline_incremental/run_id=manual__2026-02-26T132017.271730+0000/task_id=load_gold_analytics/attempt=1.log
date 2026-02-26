@@ -1,0 +1,34 @@
+[2026-02-26T13:21:15.790+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2026-02-26T13:21:15.832+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: 02_etl_pipeline_incremental.load_gold_analytics manual__2026-02-26T13:20:17.271730+00:00 [queued]>
+[2026-02-26T13:21:15.846+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: 02_etl_pipeline_incremental.load_gold_analytics manual__2026-02-26T13:20:17.271730+00:00 [queued]>
+[2026-02-26T13:21:15.848+0000] {taskinstance.py:2884} INFO - Starting attempt 1 of 2
+[2026-02-26T13:21:16.038+0000] {taskinstance.py:2907} INFO - Executing <Task(SQLExecuteQueryOperator): load_gold_analytics> on 2026-02-26 13:20:17.271730+00:00
+[2026-02-26T13:21:16.050+0000] {standard_task_runner.py:72} INFO - Started process 4527 to run task
+[2026-02-26T13:21:16.056+0000] {standard_task_runner.py:104} INFO - Running: ['***', 'tasks', 'run', '02_etl_pipeline_incremental', 'load_gold_analytics', 'manual__2026-02-26T13:20:17.271730+00:00', '--job-id', '689', '--raw', '--subdir', 'DAGS_FOLDER/02_etl_pipeline.py', '--cfg-path', '/tmp/tmpqz20h84t']
+[2026-02-26T13:21:16.060+0000] {standard_task_runner.py:105} INFO - Job 689: Subtask load_gold_analytics
+[2026-02-26T13:21:16.138+0000] {task_command.py:467} INFO - Running <TaskInstance: 02_etl_pipeline_incremental.load_gold_analytics manual__2026-02-26T13:20:17.271730+00:00 [running]> on host d54c9b653406
+[2026-02-26T13:21:16.244+0000] {taskinstance.py:3157} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='02_etl_pipeline_incremental' AIRFLOW_CTX_TASK_ID='load_gold_analytics' AIRFLOW_CTX_EXECUTION_DATE='2026-02-26T13:20:17.271730+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2026-02-26T13:20:17.271730+00:00'
+[2026-02-26T13:21:16.248+0000] {logging_mixin.py:190} INFO - Task instance is in running state
+[2026-02-26T13:21:16.250+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: queued
+[2026-02-26T13:21:16.251+0000] {logging_mixin.py:190} INFO - Current task name:load_gold_analytics state:running start_date:2026-02-26 13:21:15.834536+00:00
+[2026-02-26T13:21:16.252+0000] {logging_mixin.py:190} INFO - Dag name:02_etl_pipeline_incremental and current dag run status:running
+[2026-02-26T13:21:16.254+0000] {taskinstance.py:740} INFO - ::endgroup::
+[2026-02-26T13:21:16.255+0000] {sql.py:306} INFO - Executing: CALL AIRLINE_DWH.GOLD_DATA.SP_REFRESH_GOLD_REPORT();
+[2026-02-26T13:21:16.275+0000] {base.py:84} INFO - Retrieving connection 'snowflake_default'
+[2026-02-26T13:21:16.472+0000] {base.py:84} INFO - Retrieving connection 'snowflake_default'
+[2026-02-26T13:21:16.476+0000] {connection.py:486} INFO - Snowflake Connector for Python Version: 3.15.0, Python Version: 3.10.17, Platform: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.36
+[2026-02-26T13:21:16.478+0000] {connection.py:1391} INFO - Connecting to GLOBAL Snowflake domain
+[2026-02-26T13:21:17.515+0000] {snowflake.py:521} INFO - Running statement: CALL AIRLINE_DWH.GOLD_DATA.SP_REFRESH_GOLD_REPORT();, parameters: None
+[2026-02-26T13:21:17.519+0000] {sql.py:814} INFO - Running statement: CALL AIRLINE_DWH.GOLD_DATA.SP_REFRESH_GOLD_REPORT();, parameters: None
+[2026-02-26T13:21:19.230+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T13:21:19.232+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T13:21:19.233+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2abe1-0005-0f17-0001-37ce0008b21e
+[2026-02-26T13:21:19.460+0000] {taskinstance.py:349} INFO - ::group::Post task execution logs
+[2026-02-26T13:21:19.462+0000] {taskinstance.py:361} INFO - Marking task as SUCCESS. dag_id=02_etl_pipeline_incremental, task_id=load_gold_analytics, run_id=manual__2026-02-26T13:20:17.271730+00:00, execution_date=20260226T132017, start_date=20260226T132115, end_date=20260226T132119
+[2026-02-26T13:21:19.497+0000] {logging_mixin.py:190} INFO - Task instance in success state
+[2026-02-26T13:21:19.498+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: running
+[2026-02-26T13:21:19.499+0000] {logging_mixin.py:190} INFO - Dag name:02_etl_pipeline_incremental queued_at:2026-02-26 13:20:17.291987+00:00
+[2026-02-26T13:21:19.500+0000] {logging_mixin.py:190} INFO - Task hostname:d54c9b653406 operator:SQLExecuteQueryOperator
+[2026-02-26T13:21:19.525+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2026-02-26T13:21:19.560+0000] {taskinstance.py:3924} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2026-02-26T13:21:19.563+0000] {local_task_job_runner.py:245} INFO - ::endgroup::

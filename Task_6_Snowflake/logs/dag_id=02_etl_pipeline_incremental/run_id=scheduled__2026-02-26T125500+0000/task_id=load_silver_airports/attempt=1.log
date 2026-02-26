@@ -1,0 +1,34 @@
+[2026-02-26T13:00:23.853+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2026-02-26T13:00:23.900+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: 02_etl_pipeline_incremental.load_silver_airports scheduled__2026-02-26T12:55:00+00:00 [queued]>
+[2026-02-26T13:00:23.920+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: 02_etl_pipeline_incremental.load_silver_airports scheduled__2026-02-26T12:55:00+00:00 [queued]>
+[2026-02-26T13:00:23.922+0000] {taskinstance.py:2884} INFO - Starting attempt 1 of 2
+[2026-02-26T13:00:24.189+0000] {taskinstance.py:2907} INFO - Executing <Task(SQLExecuteQueryOperator): load_silver_airports> on 2026-02-26 12:55:00+00:00
+[2026-02-26T13:00:24.201+0000] {standard_task_runner.py:72} INFO - Started process 4030 to run task
+[2026-02-26T13:00:24.210+0000] {standard_task_runner.py:104} INFO - Running: ['***', 'tasks', 'run', '02_etl_pipeline_incremental', 'load_silver_airports', 'scheduled__2026-02-26T12:55:00+00:00', '--job-id', '635', '--raw', '--subdir', 'DAGS_FOLDER/02_etl_pipeline.py', '--cfg-path', '/tmp/tmpnepkqj40']
+[2026-02-26T13:00:24.214+0000] {standard_task_runner.py:105} INFO - Job 635: Subtask load_silver_airports
+[2026-02-26T13:00:24.340+0000] {task_command.py:467} INFO - Running <TaskInstance: 02_etl_pipeline_incremental.load_silver_airports scheduled__2026-02-26T12:55:00+00:00 [running]> on host d54c9b653406
+[2026-02-26T13:00:24.498+0000] {taskinstance.py:3157} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='02_etl_pipeline_incremental' AIRFLOW_CTX_TASK_ID='load_silver_airports' AIRFLOW_CTX_EXECUTION_DATE='2026-02-26T12:55:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2026-02-26T12:55:00+00:00'
+[2026-02-26T13:00:24.501+0000] {logging_mixin.py:190} INFO - Task instance is in running state
+[2026-02-26T13:00:24.503+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: queued
+[2026-02-26T13:00:24.505+0000] {logging_mixin.py:190} INFO - Current task name:load_silver_airports state:running start_date:2026-02-26 13:00:23.901956+00:00
+[2026-02-26T13:00:24.507+0000] {logging_mixin.py:190} INFO - Dag name:02_etl_pipeline_incremental and current dag run status:running
+[2026-02-26T13:00:24.509+0000] {taskinstance.py:740} INFO - ::endgroup::
+[2026-02-26T13:00:24.510+0000] {sql.py:306} INFO - Executing: CALL AIRLINE_DWH.SILVER_DATA.SP_LOAD_DIM_AIRPORTS();
+[2026-02-26T13:00:24.535+0000] {base.py:84} INFO - Retrieving connection 'snowflake_default'
+[2026-02-26T13:00:24.828+0000] {base.py:84} INFO - Retrieving connection 'snowflake_default'
+[2026-02-26T13:00:24.831+0000] {connection.py:486} INFO - Snowflake Connector for Python Version: 3.15.0, Python Version: 3.10.17, Platform: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.36
+[2026-02-26T13:00:24.833+0000] {connection.py:1391} INFO - Connecting to GLOBAL Snowflake domain
+[2026-02-26T13:00:25.393+0000] {snowflake.py:521} INFO - Running statement: CALL AIRLINE_DWH.SILVER_DATA.SP_LOAD_DIM_AIRPORTS();, parameters: None
+[2026-02-26T13:00:25.395+0000] {sql.py:814} INFO - Running statement: CALL AIRLINE_DWH.SILVER_DATA.SP_LOAD_DIM_AIRPORTS();, parameters: None
+[2026-02-26T13:00:27.723+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T13:00:27.725+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T13:00:27.727+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2abcc-0005-0f17-0001-37ce00089da2
+[2026-02-26T13:00:28.136+0000] {taskinstance.py:349} INFO - ::group::Post task execution logs
+[2026-02-26T13:00:28.137+0000] {taskinstance.py:361} INFO - Marking task as SUCCESS. dag_id=02_etl_pipeline_incremental, task_id=load_silver_airports, run_id=scheduled__2026-02-26T12:55:00+00:00, execution_date=20260226T125500, start_date=20260226T130023, end_date=20260226T130028
+[2026-02-26T13:00:28.168+0000] {logging_mixin.py:190} INFO - Task instance in success state
+[2026-02-26T13:00:28.170+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: running
+[2026-02-26T13:00:28.171+0000] {logging_mixin.py:190} INFO - Dag name:02_etl_pipeline_incremental queued_at:2026-02-26 13:00:00.707239+00:00
+[2026-02-26T13:00:28.172+0000] {logging_mixin.py:190} INFO - Task hostname:d54c9b653406 operator:SQLExecuteQueryOperator
+[2026-02-26T13:00:28.200+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2026-02-26T13:00:28.229+0000] {taskinstance.py:3924} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2026-02-26T13:00:28.232+0000] {local_task_job_runner.py:245} INFO - ::endgroup::

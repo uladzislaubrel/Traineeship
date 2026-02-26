@@ -1,0 +1,292 @@
+[2026-02-26T12:18:41.928+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2026-02-26T12:18:41.952+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: 01_init_infrastructure.08_create_sp_passengers manual__2026-02-26T12:18:04.019055+00:00 [queued]>
+[2026-02-26T12:18:41.964+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: 01_init_infrastructure.08_create_sp_passengers manual__2026-02-26T12:18:04.019055+00:00 [queued]>
+[2026-02-26T12:18:41.967+0000] {taskinstance.py:2884} INFO - Starting attempt 1 of 1
+[2026-02-26T12:18:42.119+0000] {taskinstance.py:2907} INFO - Executing <Task(SQLExecuteQueryOperator): 08_create_sp_passengers> on 2026-02-26 12:18:04.019055+00:00
+[2026-02-26T12:18:42.130+0000] {standard_task_runner.py:72} INFO - Started process 3115 to run task
+[2026-02-26T12:18:42.136+0000] {standard_task_runner.py:104} INFO - Running: ['***', 'tasks', 'run', '01_init_infrastructure', '08_create_sp_passengers', 'manual__2026-02-26T12:18:04.019055+00:00', '--job-id', '547', '--raw', '--subdir', 'DAGS_FOLDER/01_init_infrastructure.py', '--cfg-path', '/tmp/tmph2r7xzlh']
+[2026-02-26T12:18:42.141+0000] {standard_task_runner.py:105} INFO - Job 547: Subtask 08_create_sp_passengers
+[2026-02-26T12:18:42.209+0000] {task_command.py:467} INFO - Running <TaskInstance: 01_init_infrastructure.08_create_sp_passengers manual__2026-02-26T12:18:04.019055+00:00 [running]> on host d54c9b653406
+[2026-02-26T12:18:42.311+0000] {taskinstance.py:3157} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='01_init_infrastructure' AIRFLOW_CTX_TASK_ID='08_create_sp_passengers' AIRFLOW_CTX_EXECUTION_DATE='2026-02-26T12:18:04.019055+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2026-02-26T12:18:04.019055+00:00'
+[2026-02-26T12:18:42.315+0000] {logging_mixin.py:190} INFO - Task instance is in running state
+[2026-02-26T12:18:42.316+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: queued
+[2026-02-26T12:18:42.317+0000] {logging_mixin.py:190} INFO - Current task name:08_create_sp_passengers state:running start_date:2026-02-26 12:18:41.954433+00:00
+[2026-02-26T12:18:42.319+0000] {logging_mixin.py:190} INFO - Dag name:01_init_infrastructure and current dag run status:running
+[2026-02-26T12:18:42.320+0000] {taskinstance.py:740} INFO - ::endgroup::
+[2026-02-26T12:18:42.322+0000] {sql.py:306} INFO - Executing: CREATE OR REPLACE PROCEDURE AIRLINE_DWH.SILVER_DATA.SP_LOAD_DIM_PASSENGERS_SCD2_MERGE()
+RETURNS VARCHAR
+LANGUAGE SQL
+EXECUTE AS CALLER
+AS
+$$
+DECLARE
+    rows_affected INT := 0;
+    run_timestamp TIMESTAMP := CURRENT_TIMESTAMP();
+BEGIN
+    BEGIN TRANSACTION;
+
+    -- 1. If there is no data - exit
+    IF (SYSTEM$STREAM_HAS_DATA('AIRLINE_DWH.RAW_DATA.STREAM_FOR_PASSENGERS') = FALSE) THEN
+        COMMIT;
+        RETURN 'No new data found';
+    END IF;
+
+    -- 2. MERGE
+    MERGE INTO AIRLINE_DWH.SILVER_DATA.DIM_PASSENGERS T
+    USING (
+        WITH STREAM_DATA AS (
+            SELECT DISTINCT
+                passenger_id,
+                first_name,
+                last_name,
+                gender,
+                TRY_TO_NUMBER(age) AS age,
+                nationality,
+                HASH(first_name, last_name, nationality) AS new_row_hash
+            FROM AIRLINE_DWH.RAW_DATA.STREAM_FOR_PASSENGERS
+            WHERE METADATA$ACTION = 'INSERT'
+        )
+        
+        -- Part 1 - rows for update(were changed recently)
+        SELECT 
+            src.passenger_id AS merge_key, -- ID for compare with Target
+            src.*
+        FROM STREAM_DATA src
+        JOIN AIRLINE_DWH.SILVER_DATA.DIM_PASSENGERS tgt 
+          ON src.passenger_id = tgt.passenger_id 
+         AND tgt.is_current = TRUE 
+         AND src.new_row_hash <> tgt.row_hash
+
+        UNION ALL
+
+        -- Part 2 - Rows for INSERT (new + new versions of updated rows)
+        SELECT 
+            NULL AS merge_key, -- synthetic NULL, for MERGE doesn't find coincidence
+            src.*
+        FROM STREAM_DATA src
+    ) S
+    ON T.passenger_id = S.merge_key -- match targer and source
+
+    -- Step 1: If key matches (part 1) -> close old row
+    WHEN MATCHED THEN
+        UPDATE SET 
+            T.is_current = FALSE,
+            T.valid_to = :run_timestamp
+
+    -- Step 2: If key doesn't match(part 2, bc of merge_key = NULL) -> insert new row
+    WHEN NOT MATCHED THEN
+        INSERT (
+            passenger_id, first_name, last_name, gender, age, nationality, 
+            row_hash, valid_from, valid_to, is_current
+        )
+        VALUES (
+            S.passenger_id, S.first_name, S.last_name, S.gender, S.age, S.nationality,
+            S.new_row_hash, 
+            :run_timestamp, 
+            NULL, 
+            TRUE
+        );
+
+    -- 3. number of affected rows (update+ insert)
+    rows_affected := SQLROWCOUNT;
+
+    -- 4. Логируем
+    INSERT INTO AIRLINE_DWH.UTILS.ETL_LOGS (process_name, layer, rows_affected, status, error_message)
+    VALUES ('SP_LOAD_DIM_PASSENGERS_SCD2_MERGE', 'SILVER', :rows_affected, 'SUCCESS', 
+            'Total rows affected (Merged): ' || :rows_affected);
+
+    COMMIT;
+    RETURN 'Done. Total rows affected: ' || :rows_affected;
+
+END;
+$$;
+[2026-02-26T12:18:42.336+0000] {base.py:84} INFO - Retrieving connection 'snowflake_default'
+[2026-02-26T12:18:42.479+0000] {base.py:84} INFO - Retrieving connection 'snowflake_default'
+[2026-02-26T12:18:42.481+0000] {connection.py:486} INFO - Snowflake Connector for Python Version: 3.15.0, Python Version: 3.10.17, Platform: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.36
+[2026-02-26T12:18:42.483+0000] {connection.py:1391} INFO - Connecting to GLOBAL Snowflake domain
+[2026-02-26T12:18:43.642+0000] {snowflake.py:521} INFO - Running statement: CREATE OR REPLACE PROCEDURE AIRLINE_DWH.SILVER_DATA.SP_LOAD_DIM_PASSENGERS_SCD2_MERGE()
+RETURNS VARCHAR
+LANGUAGE SQL
+EXECUTE AS CALLER
+AS
+$$
+DECLARE
+    rows_affected INT := 0;
+    run_timestamp TIMESTAMP := CURRENT_TIMESTAMP();
+BEGIN
+    BEGIN TRANSACTION;
+
+    -- 1. If there is no data - exit
+    IF (SYSTEM$STREAM_HAS_DATA('AIRLINE_DWH.RAW_DATA.STREAM_FOR_PASSENGERS') = FALSE) THEN
+        COMMIT;
+        RETURN 'No new data found';
+    END IF;
+
+    -- 2. MERGE
+    MERGE INTO AIRLINE_DWH.SILVER_DATA.DIM_PASSENGERS T
+    USING (
+        WITH STREAM_DATA AS (
+            SELECT DISTINCT
+                passenger_id,
+                first_name,
+                last_name,
+                gender,
+                TRY_TO_NUMBER(age) AS age,
+                nationality,
+                HASH(first_name, last_name, nationality) AS new_row_hash
+            FROM AIRLINE_DWH.RAW_DATA.STREAM_FOR_PASSENGERS
+            WHERE METADATA$ACTION = 'INSERT'
+        )
+        
+        -- Part 1 - rows for update(were changed recently)
+        SELECT 
+            src.passenger_id AS merge_key, -- ID for compare with Target
+            src.*
+        FROM STREAM_DATA src
+        JOIN AIRLINE_DWH.SILVER_DATA.DIM_PASSENGERS tgt 
+          ON src.passenger_id = tgt.passenger_id 
+         AND tgt.is_current = TRUE 
+         AND src.new_row_hash <> tgt.row_hash
+
+        UNION ALL
+
+        -- Part 2 - Rows for INSERT (new + new versions of updated rows)
+        SELECT 
+            NULL AS merge_key, -- synthetic NULL, for MERGE doesn't find coincidence
+            src.*
+        FROM STREAM_DATA src
+    ) S
+    ON T.passenger_id = S.merge_key -- match targer and source
+
+    -- Step 1: If key matches (part 1) -> close old row
+    WHEN MATCHED THEN
+        UPDATE SET 
+            T.is_current = FALSE,
+            T.valid_to = :run_timestamp
+
+    -- Step 2: If key doesn't match(part 2, bc of merge_key = NULL) -> insert new row
+    WHEN NOT MATCHED THEN
+        INSERT (
+            passenger_id, first_name, last_name, gender, age, nationality, 
+            row_hash, valid_from, valid_to, is_current
+        )
+        VALUES (
+            S.passenger_id, S.first_name, S.last_name, S.gender, S.age, S.nationality,
+            S.new_row_hash, 
+            :run_timestamp, 
+            NULL, 
+            TRUE
+        );
+
+    -- 3. number of affected rows (update+ insert)
+    rows_affected := SQLROWCOUNT;
+
+    -- 4. Логируем
+    INSERT INTO AIRLINE_DWH.UTILS.ETL_LOGS (process_name, layer, rows_affected, status, error_message)
+    VALUES ('SP_LOAD_DIM_PASSENGERS_SCD2_MERGE', 'SILVER', :rows_affected, 'SUCCESS', 
+            'Total rows affected (Merged): ' || :rows_affected);
+
+    COMMIT;
+    RETURN 'Done. Total rows affected: ' || :rows_affected;
+
+END;
+$$;, parameters: None
+[2026-02-26T12:18:43.644+0000] {sql.py:814} INFO - Running statement: CREATE OR REPLACE PROCEDURE AIRLINE_DWH.SILVER_DATA.SP_LOAD_DIM_PASSENGERS_SCD2_MERGE()
+RETURNS VARCHAR
+LANGUAGE SQL
+EXECUTE AS CALLER
+AS
+$$
+DECLARE
+    rows_affected INT := 0;
+    run_timestamp TIMESTAMP := CURRENT_TIMESTAMP();
+BEGIN
+    BEGIN TRANSACTION;
+
+    -- 1. If there is no data - exit
+    IF (SYSTEM$STREAM_HAS_DATA('AIRLINE_DWH.RAW_DATA.STREAM_FOR_PASSENGERS') = FALSE) THEN
+        COMMIT;
+        RETURN 'No new data found';
+    END IF;
+
+    -- 2. MERGE
+    MERGE INTO AIRLINE_DWH.SILVER_DATA.DIM_PASSENGERS T
+    USING (
+        WITH STREAM_DATA AS (
+            SELECT DISTINCT
+                passenger_id,
+                first_name,
+                last_name,
+                gender,
+                TRY_TO_NUMBER(age) AS age,
+                nationality,
+                HASH(first_name, last_name, nationality) AS new_row_hash
+            FROM AIRLINE_DWH.RAW_DATA.STREAM_FOR_PASSENGERS
+            WHERE METADATA$ACTION = 'INSERT'
+        )
+        
+        -- Part 1 - rows for update(were changed recently)
+        SELECT 
+            src.passenger_id AS merge_key, -- ID for compare with Target
+            src.*
+        FROM STREAM_DATA src
+        JOIN AIRLINE_DWH.SILVER_DATA.DIM_PASSENGERS tgt 
+          ON src.passenger_id = tgt.passenger_id 
+         AND tgt.is_current = TRUE 
+         AND src.new_row_hash <> tgt.row_hash
+
+        UNION ALL
+
+        -- Part 2 - Rows for INSERT (new + new versions of updated rows)
+        SELECT 
+            NULL AS merge_key, -- synthetic NULL, for MERGE doesn't find coincidence
+            src.*
+        FROM STREAM_DATA src
+    ) S
+    ON T.passenger_id = S.merge_key -- match targer and source
+
+    -- Step 1: If key matches (part 1) -> close old row
+    WHEN MATCHED THEN
+        UPDATE SET 
+            T.is_current = FALSE,
+            T.valid_to = :run_timestamp
+
+    -- Step 2: If key doesn't match(part 2, bc of merge_key = NULL) -> insert new row
+    WHEN NOT MATCHED THEN
+        INSERT (
+            passenger_id, first_name, last_name, gender, age, nationality, 
+            row_hash, valid_from, valid_to, is_current
+        )
+        VALUES (
+            S.passenger_id, S.first_name, S.last_name, S.gender, S.age, S.nationality,
+            S.new_row_hash, 
+            :run_timestamp, 
+            NULL, 
+            TRUE
+        );
+
+    -- 3. number of affected rows (update+ insert)
+    rows_affected := SQLROWCOUNT;
+
+    -- 4. Логируем
+    INSERT INTO AIRLINE_DWH.UTILS.ETL_LOGS (process_name, layer, rows_affected, status, error_message)
+    VALUES ('SP_LOAD_DIM_PASSENGERS_SCD2_MERGE', 'SILVER', :rows_affected, 'SUCCESS', 
+            'Total rows affected (Merged): ' || :rows_affected);
+
+    COMMIT;
+    RETURN 'Done. Total rows affected: ' || :rows_affected;
+
+END;
+$$;, parameters: None
+[2026-02-26T12:18:43.797+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T12:18:43.799+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T12:18:43.800+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2aba2-0005-0f17-0001-37ce00089822
+[2026-02-26T12:18:44.034+0000] {taskinstance.py:349} INFO - ::group::Post task execution logs
+[2026-02-26T12:18:44.051+0000] {taskinstance.py:361} INFO - Marking task as SUCCESS. dag_id=01_init_infrastructure, task_id=08_create_sp_passengers, run_id=manual__2026-02-26T12:18:04.019055+00:00, execution_date=20260226T121804, start_date=20260226T121841, end_date=20260226T121844
+[2026-02-26T12:18:44.091+0000] {logging_mixin.py:190} INFO - Task instance in success state
+[2026-02-26T12:18:44.092+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: running
+[2026-02-26T12:18:44.093+0000] {logging_mixin.py:190} INFO - Dag name:01_init_infrastructure queued_at:2026-02-26 12:18:04.031568+00:00
+[2026-02-26T12:18:44.094+0000] {logging_mixin.py:190} INFO - Task hostname:d54c9b653406 operator:SQLExecuteQueryOperator
+[2026-02-26T12:18:44.121+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2026-02-26T12:18:44.166+0000] {taskinstance.py:3924} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2026-02-26T12:18:44.170+0000] {local_task_job_runner.py:245} INFO - ::endgroup::

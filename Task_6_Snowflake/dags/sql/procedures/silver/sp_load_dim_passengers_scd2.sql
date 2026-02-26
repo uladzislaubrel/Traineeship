@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE AIRLINE_DWH.SILVER_DATA.SP_LOAD_DIM_PASSENGERS_SCD2_MERGE()
+CREATE OR REPLACE PROCEDURE AIRLINE_DWH.SILVER_DATA.SP_LOAD_DIM_PASSENGERS_SCD2()
 RETURNS VARCHAR
 LANGUAGE SQL
 EXECUTE AS CALLER
@@ -49,6 +49,11 @@ BEGIN
             NULL AS merge_key, -- synthetic NULL, for MERGE doesn't find coincidence
             src.*
         FROM STREAM_DATA src
+        LEFT JOIN AIRLINE_DWH.SILVER_DATA.DIM_PASSENGERS tgt
+          ON src.passenger_id = tgt.passenger_id
+         AND tgt.is_current = TRUE
+        WHERE tgt.passenger_id IS NULL             -- absolutely new passenger (There is not ID in base)
+           OR src.new_row_hash <> tgt.row_hash     -- Or it exists, but its data(hash) was changed
     ) S
     ON T.passenger_id = S.merge_key -- match targer and source
 

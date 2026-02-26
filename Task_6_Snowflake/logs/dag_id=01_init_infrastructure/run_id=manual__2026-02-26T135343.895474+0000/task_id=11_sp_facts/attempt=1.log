@@ -1,0 +1,178 @@
+[2026-02-26T13:54:30.345+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2026-02-26T13:54:30.370+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: 01_init_infrastructure.11_sp_facts manual__2026-02-26T13:53:43.895474+00:00 [queued]>
+[2026-02-26T13:54:30.387+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: 01_init_infrastructure.11_sp_facts manual__2026-02-26T13:53:43.895474+00:00 [queued]>
+[2026-02-26T13:54:30.389+0000] {taskinstance.py:2884} INFO - Starting attempt 1 of 1
+[2026-02-26T13:54:30.548+0000] {taskinstance.py:2907} INFO - Executing <Task(SQLExecuteQueryOperator): 11_sp_facts> on 2026-02-26 13:53:43.895474+00:00
+[2026-02-26T13:54:30.556+0000] {standard_task_runner.py:72} INFO - Started process 5040 to run task
+[2026-02-26T13:54:30.562+0000] {standard_task_runner.py:104} INFO - Running: ['***', 'tasks', 'run', '01_init_infrastructure', '11_sp_facts', 'manual__2026-02-26T13:53:43.895474+00:00', '--job-id', '708', '--raw', '--subdir', 'DAGS_FOLDER/01_init_infrastructure.py', '--cfg-path', '/tmp/tmptrcy9mdt']
+[2026-02-26T13:54:30.565+0000] {standard_task_runner.py:105} INFO - Job 708: Subtask 11_sp_facts
+[2026-02-26T13:54:30.637+0000] {task_command.py:467} INFO - Running <TaskInstance: 01_init_infrastructure.11_sp_facts manual__2026-02-26T13:53:43.895474+00:00 [running]> on host d54c9b653406
+[2026-02-26T13:54:30.748+0000] {taskinstance.py:3157} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='01_init_infrastructure' AIRFLOW_CTX_TASK_ID='11_sp_facts' AIRFLOW_CTX_EXECUTION_DATE='2026-02-26T13:53:43.895474+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2026-02-26T13:53:43.895474+00:00'
+[2026-02-26T13:54:30.753+0000] {logging_mixin.py:190} INFO - Task instance is in running state
+[2026-02-26T13:54:30.760+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: queued
+[2026-02-26T13:54:30.761+0000] {logging_mixin.py:190} INFO - Current task name:11_sp_facts state:running start_date:2026-02-26 13:54:30.371906+00:00
+[2026-02-26T13:54:30.762+0000] {logging_mixin.py:190} INFO - Dag name:01_init_infrastructure and current dag run status:running
+[2026-02-26T13:54:30.764+0000] {taskinstance.py:740} INFO - ::endgroup::
+[2026-02-26T13:54:30.765+0000] {sql.py:306} INFO - Executing: CREATE OR REPLACE PROCEDURE AIRLINE_DWH.SILVER_DATA.SP_LOAD_FACT_AIRLINE()
+RETURNS VARCHAR
+LANGUAGE SQL
+AS
+$$
+DECLARE
+    rows_inserted INT;
+BEGIN
+    BEGIN TRANSACTION;
+    IF (SYSTEM$STREAM_HAS_DATA('AIRLINE_DWH.RAW_DATA.STREAM_FOR_FACTS') = FALSE) THEN
+        COMMIT;
+        RETURN 'No data';
+    END IF;
+
+    -- insert facts with keys (JOIN)
+    INSERT INTO AIRLINE_DWH.SILVER_DATA.FACT_AIRLINE (
+        passenger_sk, pilot_sk, airport_sk, 
+        departure_date, flight_status, ticket_type
+    )
+    SELECT 
+        P.passenger_sk,
+        PL.pilot_sk,
+        A.airport_sk,
+        TRY_TO_DATE(R.departure_date, 'MM/DD/YYYY'), -- Parse date
+        R.flight_status,
+        R.ticket_type
+    FROM AIRLINE_DWH.RAW_DATA.STREAM_FOR_FACTS R
+    -- 1. Looking fopr passenger (actual)
+    LEFT JOIN AIRLINE_DWH.SILVER_DATA.DIM_PASSENGERS P 
+        ON R.passenger_id = P.passenger_id 
+        AND P.is_current = TRUE -- Only current version
+    -- 2. Looking for pilot
+    LEFT JOIN AIRLINE_DWH.SILVER_DATA.DIM_PILOTS PL 
+        ON R.pilot_name = PL.pilot_name
+    -- 3. Looking for airport
+    LEFT JOIN AIRLINE_DWH.SILVER_DATA.DIM_AIRPORTS A 
+        ON R.airport_name = A.airport_name
+    WHERE R.METADATA$ACTION = 'INSERT';
+
+    rows_inserted := SQLROWCOUNT;
+
+    INSERT INTO AIRLINE_DWH.UTILS.ETL_LOGS (process_name, layer, rows_affected, status)
+    VALUES ('SP_LOAD_FACT_AIRLINE', 'SILVER', :rows_inserted, 'SUCCESS');
+
+    COMMIT;
+    RETURN 'Loaded Facts: ' || :rows_inserted;
+
+END;
+$$;
+[2026-02-26T13:54:30.784+0000] {base.py:84} INFO - Retrieving connection 'snowflake_default'
+[2026-02-26T13:54:30.959+0000] {base.py:84} INFO - Retrieving connection 'snowflake_default'
+[2026-02-26T13:54:30.961+0000] {connection.py:486} INFO - Snowflake Connector for Python Version: 3.15.0, Python Version: 3.10.17, Platform: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.36
+[2026-02-26T13:54:30.963+0000] {connection.py:1391} INFO - Connecting to GLOBAL Snowflake domain
+[2026-02-26T13:54:31.420+0000] {snowflake.py:521} INFO - Running statement: CREATE OR REPLACE PROCEDURE AIRLINE_DWH.SILVER_DATA.SP_LOAD_FACT_AIRLINE()
+RETURNS VARCHAR
+LANGUAGE SQL
+AS
+$$
+DECLARE
+    rows_inserted INT;
+BEGIN
+    BEGIN TRANSACTION;
+    IF (SYSTEM$STREAM_HAS_DATA('AIRLINE_DWH.RAW_DATA.STREAM_FOR_FACTS') = FALSE) THEN
+        COMMIT;
+        RETURN 'No data';
+    END IF;
+
+    -- insert facts with keys (JOIN)
+    INSERT INTO AIRLINE_DWH.SILVER_DATA.FACT_AIRLINE (
+        passenger_sk, pilot_sk, airport_sk, 
+        departure_date, flight_status, ticket_type
+    )
+    SELECT 
+        P.passenger_sk,
+        PL.pilot_sk,
+        A.airport_sk,
+        TRY_TO_DATE(R.departure_date, 'MM/DD/YYYY'), -- Parse date
+        R.flight_status,
+        R.ticket_type
+    FROM AIRLINE_DWH.RAW_DATA.STREAM_FOR_FACTS R
+    -- 1. Looking fopr passenger (actual)
+    LEFT JOIN AIRLINE_DWH.SILVER_DATA.DIM_PASSENGERS P 
+        ON R.passenger_id = P.passenger_id 
+        AND P.is_current = TRUE -- Only current version
+    -- 2. Looking for pilot
+    LEFT JOIN AIRLINE_DWH.SILVER_DATA.DIM_PILOTS PL 
+        ON R.pilot_name = PL.pilot_name
+    -- 3. Looking for airport
+    LEFT JOIN AIRLINE_DWH.SILVER_DATA.DIM_AIRPORTS A 
+        ON R.airport_name = A.airport_name
+    WHERE R.METADATA$ACTION = 'INSERT';
+
+    rows_inserted := SQLROWCOUNT;
+
+    INSERT INTO AIRLINE_DWH.UTILS.ETL_LOGS (process_name, layer, rows_affected, status)
+    VALUES ('SP_LOAD_FACT_AIRLINE', 'SILVER', :rows_inserted, 'SUCCESS');
+
+    COMMIT;
+    RETURN 'Loaded Facts: ' || :rows_inserted;
+
+END;
+$$;, parameters: None
+[2026-02-26T13:54:31.422+0000] {sql.py:814} INFO - Running statement: CREATE OR REPLACE PROCEDURE AIRLINE_DWH.SILVER_DATA.SP_LOAD_FACT_AIRLINE()
+RETURNS VARCHAR
+LANGUAGE SQL
+AS
+$$
+DECLARE
+    rows_inserted INT;
+BEGIN
+    BEGIN TRANSACTION;
+    IF (SYSTEM$STREAM_HAS_DATA('AIRLINE_DWH.RAW_DATA.STREAM_FOR_FACTS') = FALSE) THEN
+        COMMIT;
+        RETURN 'No data';
+    END IF;
+
+    -- insert facts with keys (JOIN)
+    INSERT INTO AIRLINE_DWH.SILVER_DATA.FACT_AIRLINE (
+        passenger_sk, pilot_sk, airport_sk, 
+        departure_date, flight_status, ticket_type
+    )
+    SELECT 
+        P.passenger_sk,
+        PL.pilot_sk,
+        A.airport_sk,
+        TRY_TO_DATE(R.departure_date, 'MM/DD/YYYY'), -- Parse date
+        R.flight_status,
+        R.ticket_type
+    FROM AIRLINE_DWH.RAW_DATA.STREAM_FOR_FACTS R
+    -- 1. Looking fopr passenger (actual)
+    LEFT JOIN AIRLINE_DWH.SILVER_DATA.DIM_PASSENGERS P 
+        ON R.passenger_id = P.passenger_id 
+        AND P.is_current = TRUE -- Only current version
+    -- 2. Looking for pilot
+    LEFT JOIN AIRLINE_DWH.SILVER_DATA.DIM_PILOTS PL 
+        ON R.pilot_name = PL.pilot_name
+    -- 3. Looking for airport
+    LEFT JOIN AIRLINE_DWH.SILVER_DATA.DIM_AIRPORTS A 
+        ON R.airport_name = A.airport_name
+    WHERE R.METADATA$ACTION = 'INSERT';
+
+    rows_inserted := SQLROWCOUNT;
+
+    INSERT INTO AIRLINE_DWH.UTILS.ETL_LOGS (process_name, layer, rows_affected, status)
+    VALUES ('SP_LOAD_FACT_AIRLINE', 'SILVER', :rows_inserted, 'SUCCESS');
+
+    COMMIT;
+    RETURN 'Loaded Facts: ' || :rows_inserted;
+
+END;
+$$;, parameters: None
+[2026-02-26T13:54:31.593+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T13:54:31.594+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T13:54:31.595+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2ac02-0005-0f1f-0001-37ce0008c092
+[2026-02-26T13:54:31.827+0000] {taskinstance.py:349} INFO - ::group::Post task execution logs
+[2026-02-26T13:54:31.828+0000] {taskinstance.py:361} INFO - Marking task as SUCCESS. dag_id=01_init_infrastructure, task_id=11_sp_facts, run_id=manual__2026-02-26T13:53:43.895474+00:00, execution_date=20260226T135343, start_date=20260226T135430, end_date=20260226T135431
+[2026-02-26T13:54:31.868+0000] {logging_mixin.py:190} INFO - Task instance in success state
+[2026-02-26T13:54:31.870+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: running
+[2026-02-26T13:54:31.871+0000] {logging_mixin.py:190} INFO - Dag name:01_init_infrastructure queued_at:2026-02-26 13:53:43.942840+00:00
+[2026-02-26T13:54:31.873+0000] {logging_mixin.py:190} INFO - Task hostname:d54c9b653406 operator:SQLExecuteQueryOperator
+[2026-02-26T13:54:31.902+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2026-02-26T13:54:31.950+0000] {taskinstance.py:3924} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2026-02-26T13:54:31.954+0000] {local_task_job_runner.py:245} INFO - ::endgroup::

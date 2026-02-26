@@ -1,0 +1,142 @@
+[2026-02-26T12:29:31.637+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2026-02-26T12:29:31.661+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: 01_init_infrastructure.09_sp_pilots manual__2026-02-26T12:28:48.154880+00:00 [queued]>
+[2026-02-26T12:29:31.675+0000] {taskinstance.py:2631} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: 01_init_infrastructure.09_sp_pilots manual__2026-02-26T12:28:48.154880+00:00 [queued]>
+[2026-02-26T12:29:31.677+0000] {taskinstance.py:2884} INFO - Starting attempt 1 of 1
+[2026-02-26T12:29:31.847+0000] {taskinstance.py:2907} INFO - Executing <Task(SQLExecuteQueryOperator): 09_sp_pilots> on 2026-02-26 12:28:48.154880+00:00
+[2026-02-26T12:29:31.858+0000] {standard_task_runner.py:72} INFO - Started process 3385 to run task
+[2026-02-26T12:29:31.865+0000] {standard_task_runner.py:104} INFO - Running: ['***', 'tasks', 'run', '01_init_infrastructure', '09_sp_pilots', 'manual__2026-02-26T12:28:48.154880+00:00', '--job-id', '578', '--raw', '--subdir', 'DAGS_FOLDER/01_init_infrastructure.py', '--cfg-path', '/tmp/tmp14_6v60q']
+[2026-02-26T12:29:31.869+0000] {standard_task_runner.py:105} INFO - Job 578: Subtask 09_sp_pilots
+[2026-02-26T12:29:31.950+0000] {task_command.py:467} INFO - Running <TaskInstance: 01_init_infrastructure.09_sp_pilots manual__2026-02-26T12:28:48.154880+00:00 [running]> on host d54c9b653406
+[2026-02-26T12:29:32.034+0000] {taskinstance.py:3157} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='01_init_infrastructure' AIRFLOW_CTX_TASK_ID='09_sp_pilots' AIRFLOW_CTX_EXECUTION_DATE='2026-02-26T12:28:48.154880+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2026-02-26T12:28:48.154880+00:00'
+[2026-02-26T12:29:32.038+0000] {logging_mixin.py:190} INFO - Task instance is in running state
+[2026-02-26T12:29:32.039+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: queued
+[2026-02-26T12:29:32.040+0000] {logging_mixin.py:190} INFO - Current task name:09_sp_pilots state:running start_date:2026-02-26 12:29:31.662800+00:00
+[2026-02-26T12:29:32.041+0000] {logging_mixin.py:190} INFO - Dag name:01_init_infrastructure and current dag run status:running
+[2026-02-26T12:29:32.042+0000] {taskinstance.py:740} INFO - ::endgroup::
+[2026-02-26T12:29:32.043+0000] {sql.py:306} INFO - Executing: CREATE OR REPLACE PROCEDURE AIRLINE_DWH.SILVER_DATA.SP_LOAD_DIM_PILOTS()
+RETURNS VARCHAR
+LANGUAGE SQL
+EXECUTE AS CALLER
+AS
+$$
+DECLARE
+    rows_affected INT;
+BEGIN
+    BEGIN TRANSACTION;
+    -- read from stream
+    IF (SYSTEM$STREAM_HAS_DATA('AIRLINE_DWH.RAW_DATA.STREAM_FOR_PILOTS') = FALSE) THEN
+        COMMIT;
+        RETURN 'No data';
+    END IF;
+
+    -- MERGE (insert or ignore)
+    MERGE INTO AIRLINE_DWH.SILVER_DATA.DIM_PILOTS Target
+    USING (
+        SELECT DISTINCT pilot_name 
+        FROM AIRLINE_DWH.RAW_DATA.STREAM_FOR_PILOTS 
+        WHERE METADATA$ACTION = 'INSERT' AND pilot_name IS NOT NULL
+    ) Source
+    ON Target.pilot_name = Source.pilot_name
+    WHEN NOT MATCHED THEN
+        INSERT (pilot_name) VALUES (Source.pilot_name);
+
+    rows_affected := SQLROWCOUNT;
+
+    INSERT INTO AIRLINE_DWH.UTILS.ETL_LOGS (process_name, layer, rows_affected, status)
+    VALUES ('SP_LOAD_DIM_PILOTS', 'SILVER', :rows_affected, 'SUCCESS');
+
+    COMMIT;
+    RETURN 'Loaded Pilots: ' || :rows_affected;
+
+END;
+$$;
+[2026-02-26T12:29:32.059+0000] {base.py:84} INFO - Retrieving connection 'snowflake_default'
+[2026-02-26T12:29:32.203+0000] {base.py:84} INFO - Retrieving connection 'snowflake_default'
+[2026-02-26T12:29:32.205+0000] {connection.py:486} INFO - Snowflake Connector for Python Version: 3.15.0, Python Version: 3.10.17, Platform: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.36
+[2026-02-26T12:29:32.207+0000] {connection.py:1391} INFO - Connecting to GLOBAL Snowflake domain
+[2026-02-26T12:29:33.202+0000] {snowflake.py:521} INFO - Running statement: CREATE OR REPLACE PROCEDURE AIRLINE_DWH.SILVER_DATA.SP_LOAD_DIM_PILOTS()
+RETURNS VARCHAR
+LANGUAGE SQL
+EXECUTE AS CALLER
+AS
+$$
+DECLARE
+    rows_affected INT;
+BEGIN
+    BEGIN TRANSACTION;
+    -- read from stream
+    IF (SYSTEM$STREAM_HAS_DATA('AIRLINE_DWH.RAW_DATA.STREAM_FOR_PILOTS') = FALSE) THEN
+        COMMIT;
+        RETURN 'No data';
+    END IF;
+
+    -- MERGE (insert or ignore)
+    MERGE INTO AIRLINE_DWH.SILVER_DATA.DIM_PILOTS Target
+    USING (
+        SELECT DISTINCT pilot_name 
+        FROM AIRLINE_DWH.RAW_DATA.STREAM_FOR_PILOTS 
+        WHERE METADATA$ACTION = 'INSERT' AND pilot_name IS NOT NULL
+    ) Source
+    ON Target.pilot_name = Source.pilot_name
+    WHEN NOT MATCHED THEN
+        INSERT (pilot_name) VALUES (Source.pilot_name);
+
+    rows_affected := SQLROWCOUNT;
+
+    INSERT INTO AIRLINE_DWH.UTILS.ETL_LOGS (process_name, layer, rows_affected, status)
+    VALUES ('SP_LOAD_DIM_PILOTS', 'SILVER', :rows_affected, 'SUCCESS');
+
+    COMMIT;
+    RETURN 'Loaded Pilots: ' || :rows_affected;
+
+END;
+$$;, parameters: None
+[2026-02-26T12:29:33.204+0000] {sql.py:814} INFO - Running statement: CREATE OR REPLACE PROCEDURE AIRLINE_DWH.SILVER_DATA.SP_LOAD_DIM_PILOTS()
+RETURNS VARCHAR
+LANGUAGE SQL
+EXECUTE AS CALLER
+AS
+$$
+DECLARE
+    rows_affected INT;
+BEGIN
+    BEGIN TRANSACTION;
+    -- read from stream
+    IF (SYSTEM$STREAM_HAS_DATA('AIRLINE_DWH.RAW_DATA.STREAM_FOR_PILOTS') = FALSE) THEN
+        COMMIT;
+        RETURN 'No data';
+    END IF;
+
+    -- MERGE (insert or ignore)
+    MERGE INTO AIRLINE_DWH.SILVER_DATA.DIM_PILOTS Target
+    USING (
+        SELECT DISTINCT pilot_name 
+        FROM AIRLINE_DWH.RAW_DATA.STREAM_FOR_PILOTS 
+        WHERE METADATA$ACTION = 'INSERT' AND pilot_name IS NOT NULL
+    ) Source
+    ON Target.pilot_name = Source.pilot_name
+    WHEN NOT MATCHED THEN
+        INSERT (pilot_name) VALUES (Source.pilot_name);
+
+    rows_affected := SQLROWCOUNT;
+
+    INSERT INTO AIRLINE_DWH.UTILS.ETL_LOGS (process_name, layer, rows_affected, status)
+    VALUES ('SP_LOAD_DIM_PILOTS', 'SILVER', :rows_affected, 'SUCCESS');
+
+    COMMIT;
+    RETURN 'Loaded Pilots: ' || :rows_affected;
+
+END;
+$$;, parameters: None
+[2026-02-26T12:29:33.368+0000] {sql.py:823} INFO - Rows affected: 1
+[2026-02-26T12:29:33.371+0000] {snowflake.py:534} INFO - Rows affected: 1
+[2026-02-26T12:29:33.372+0000] {snowflake.py:535} INFO - Snowflake query id: 01c2abad-0005-0f0f-0001-37ce000888e2
+[2026-02-26T12:29:33.583+0000] {taskinstance.py:349} INFO - ::group::Post task execution logs
+[2026-02-26T12:29:33.585+0000] {taskinstance.py:361} INFO - Marking task as SUCCESS. dag_id=01_init_infrastructure, task_id=09_sp_pilots, run_id=manual__2026-02-26T12:28:48.154880+00:00, execution_date=20260226T122848, start_date=20260226T122931, end_date=20260226T122933
+[2026-02-26T12:29:33.615+0000] {logging_mixin.py:190} INFO - Task instance in success state
+[2026-02-26T12:29:33.617+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: running
+[2026-02-26T12:29:33.620+0000] {logging_mixin.py:190} INFO - Dag name:01_init_infrastructure queued_at:2026-02-26 12:28:48.172982+00:00
+[2026-02-26T12:29:33.622+0000] {logging_mixin.py:190} INFO - Task hostname:d54c9b653406 operator:SQLExecuteQueryOperator
+[2026-02-26T12:29:33.648+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2026-02-26T12:29:33.679+0000] {taskinstance.py:3924} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2026-02-26T12:29:33.683+0000] {local_task_job_runner.py:245} INFO - ::endgroup::
